@@ -1,7 +1,9 @@
 ;+
 ; Type: procedure.
 ;
-; Purpose: Interface for IDL path management.
+; Purpose: Interface for IDL path management. Can reset to default; set to
+;   specified paths; add in front of existing paths; append to existing paths.
+;   Specify paths by array or a contatenated string or a formatted file.
 ;
 ; Parameters:
 ;   path, in, string or strarr[n], optional. The paths to be modified. May 
@@ -11,8 +13,17 @@
 ; Keywords:
 ;   filename, in, string, optional. Specify a full filename that contain paths.
 ;       Will be omitted if path is set.
+;   rootdir, in, string, optional. Root directory for '*' notation. If set,
+;       should be full path or relative to home directory, ie, '~/<path>'.
+;       If omitted, find it through filename if available, then if the given
+;       path is presented and contain 1 element, use it. Otherwise, try the 
+;       root directory of the routine that calls sidlpath. Finally, test the
+;       existence of rootdir, if not, set it to current directory.
 ;   reset, in, boolean, optional. Reset IDL path to original status. Used 
 ;       separately because setting it will omit all other functionalities.
+;   add, in, boolean, optional. Set to add to existing paths (in front of).
+;   append, in, boolean, optional. Set to append to existing paths (after).
+;   unique, in, boolean, optional. Set to ensure no duplicate path.
 ;
 ; Notes: none.
 ; Dependence: none.
@@ -21,7 +32,8 @@
 ;   2015-06-08, Sheng Tian, create.
 ;-
 
-pro sidlpath, path, filename = file, rootdir = rootdir, reset = reset
+pro sidlpath, path, filename = file, rootdir = rootdir, $
+    reset = reset, add = add, append = append, unique = unique
 
     ; reset IDL !path.
     if keyword_set(reset) then begin
@@ -67,10 +79,19 @@ pro sidlpath, path, filename = file, rootdir = rootdir, reset = reset
     endfor
 
     ; deal with rootdir, '*'.
-    if tpath eq '' then begin
-        call = scope_traceback(/structure)
-        rootdir = file_dirname(call[n_elements(call)-1].filename)
-    endif else rootdir = file_dirname(file)
+    if n_elements(rootdir) eq 0 then begin
+        if n_elements(file) eq 0 then begin
+            if n_elements(path) eq 1 then rootdir = path[0] else begin
+                call = scope_traceback(/structure)
+                rootdir = file_dirname(call[n_elements(call)-1].filename)
+            endelse
+        endif else rootdir = file_dirname(file)
+    endif
+    pos = strpos(rootdir,'~')
+    if pos ge 0 then $
+        rootdir = strmid(rootdir,0,pos)+homedir+strmid(rootdir,pos+1)
+    if file_test(rootdir, /directory) eq 0 then cd, current = rootdir
+    ; now found rootdir.
     for i = 0, npath-1 do begin
         pos = strpos(paths[i],'*')
         if pos lt 0 then continue
@@ -105,17 +126,31 @@ pro sidlpath, path, filename = file, rootdir = rootdir, reset = reset
     if cnt eq 0 then paths = [paths,'<IDL_DEFAULT>']
     idx = where(paths eq '<IDL_DEFAULT>')
     paths[idx] = expand_path('<IDL_DEFAULT>')
-    
     ; check path existence.
     paths = strsplit(strjoin(paths,sep1),sep1,/extract)
     npath = n_elements(paths)
     flags = bytarr(npath)
     for i = 0, npath-1 do flags[i] = file_test(paths[i],/directory)
     idx = where(flags eq 1B, cnt)   ; cnt must be >0, from <IDL_DEFAULT>.
+    
+    ; add or append.
+    if keyword_set(add) then paths = [paths,strsplit(!path, sep1, /extract)]
+    if keyword_set(append) then paths = [strsplit(!path, sep1, /extract), paths]
+    npath = n_elements(paths)
+    
+    ; uniqueness check.
+    if keyword_set(unique) then begin
+        tmp = reverse(paths)        ; reverse b/c uniq keeps the last duplicate.
+        idx = uniq(tmp, sort(tmp))  ; get unique index.
+        idx = idx[sort(idx)]        ; sort to recover the ordering.
+        tmp = tmp[idx[sort(idx)]]
+        paths = reverse(tmp)        ; we want to keep the first duplicate.
+    endif
+    
     tpath = strjoin(paths[idx],sep1)
 
     ; commit the changes to IDL path.
-    pref_set, 'IDL_PATH', paths, /commit
+    pref_set, 'IDL_PATH', tpath, /commit
     printf, plun, 'IDL path is updated ...'
 
 end
