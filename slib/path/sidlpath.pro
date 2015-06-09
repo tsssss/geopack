@@ -13,7 +13,7 @@
 ; Keywords:
 ;   filename, in, string, optional. Specify a full filename that contain paths.
 ;       Will be omitted if path is set.
-;   rootdir, in, string, optional. Root directory for '*' notation. If set,
+;   rootdir, in/out, string, optional. Root directory for '*' notation. If set,
 ;       should be full path or relative to home directory, ie, '~/<path>'.
 ;       If omitted, find it through filename if available, then if the given
 ;       path is presented and contain 1 element, use it. Otherwise, try the 
@@ -23,9 +23,12 @@
 ;       separately because setting it will omit all other functionalities.
 ;   add, in, boolean, optional. Set to add to existing paths (in front of).
 ;   append, in, boolean, optional. Set to append to existing paths (after).
-;   unique, in, boolean, optional. Set to ensure no duplicate path.
 ;
-; Notes: none.
+; Notes: IDL path entry can use the following notations. (1) '~' for home
+;   directory, eg, '~/codes/idl'; (2) '..' for parent directory, eg, '../lib';
+;   (3) '*' for root directory; (4) '+' before path entry means to include all
+;   subdirectories (that contain *.pro or *.sav files).
+;
 ; Dependence: none.
 ;
 ; History:
@@ -33,7 +36,7 @@
 ;-
 
 pro sidlpath, path, filename = file, rootdir = rootdir, $
-    reset = reset, add = add, append = append, unique = unique
+    reset = reset, add = add, append = append
 
     ; reset IDL !path.
     if keyword_set(reset) then begin
@@ -51,8 +54,8 @@ pro sidlpath, path, filename = file, rootdir = rootdir, $
         path = ''   ; if no file or cannot find it.
         if n_elements(file) ne 0 then begin
             if file_test(file) eq 1 then begin
-                nlines = file_lines(file)
-                path = strarr(nlines)
+                npath = file_lines(file)
+                path = strarr(npath)
                 openr, lun, file, /get_lun
                 readf, lun, path
                 free_lun, lun
@@ -61,7 +64,7 @@ pro sidlpath, path, filename = file, rootdir = rootdir, $
     endif
 
     tpath = strjoin(path, sep1)
-    paths = strsplit(tpath, sep1, /extract)
+    paths = strsplit(tpath, ';:,', /extract)    ; all possible path separators.
     npath = n_elements(paths)
 
     ; prepare the paths, replace / to \ for Windows.
@@ -123,31 +126,33 @@ pro sidlpath, path, filename = file, rootdir = rootdir, $
 
     ; check <IDL_DEFUALT>.
     idx = where(paths eq '<IDL_DEFAULT>', cnt)
-    if cnt eq 0 then paths = [paths,'<IDL_DEFAULT>']
+    if cnt eq 0 and ~keyword_set(add) and ~keyword_set(append) then $
+        paths = [paths,'<IDL_DEFAULT>']     ; don't add for add & append modes.
     idx = where(paths eq '<IDL_DEFAULT>')
     paths[idx] = expand_path('<IDL_DEFAULT>')
-    ; check path existence.
-    paths = strsplit(strjoin(paths,sep1),sep1,/extract)
-    npath = n_elements(paths)
-    flags = bytarr(npath)
-    for i = 0, npath-1 do flags[i] = file_test(paths[i],/directory)
-    idx = where(flags eq 1b, cnt)   ; cnt must be >0, from <IDL_DEFAULT>.
     
     ; add or append.
-    if keyword_set(add) then paths = [paths,strsplit(!path, sep1, /extract)]
+    if keyword_set(add) then paths = [paths, strsplit(!path, sep1, /extract)]
     if keyword_set(append) then paths = [strsplit(!path, sep1, /extract), paths]
     npath = n_elements(paths)
     
-    ; uniqueness check.
+    ; check uniqueness.
     tmp = reverse(paths)        ; reverse b/c uniq keeps the last duplicate.
     idx = uniq(tmp, sort(tmp))  ; get unique index.
     idx = idx[sort(idx)]        ; sort to recover the ordering.
     tmp = tmp[idx[sort(idx)]]
     paths = reverse(tmp)        ; we want to keep the first duplicate.
 
-    tpath = strjoin(paths,sep1)
+    ; check existence.
+    paths = strsplit(strjoin(paths,sep1),sep1,/extract)
+    npath = n_elements(paths)
+    flags = bytarr(npath)
+    for i = 0, npath-1 do flags[i] = file_test(paths[i],/directory)
+    idx = where(flags eq 1b, cnt)   ; cnt must be >0, from <IDL_DEFAULT>.
+    paths = paths[idx]
 
     ; commit the changes to IDL path.
+    tpath = strjoin(paths,sep1)
     pref_set, 'IDL_PATH', tpath, /commit
     printf, plun, 'IDL path is updated ...'
 
