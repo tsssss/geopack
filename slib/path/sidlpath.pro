@@ -131,7 +131,7 @@ pro sidlpath, path, filename = file, rootdir = rootdir, $
     npath = n_elements(paths)
     flags = bytarr(npath)
     for i = 0, npath-1 do flags[i] = file_test(paths[i],/directory)
-    idx = where(flags eq 1B, cnt)   ; cnt must be >0, from <IDL_DEFAULT>.
+    idx = where(flags eq 1b, cnt)   ; cnt must be >0, from <IDL_DEFAULT>.
     
     ; add or append.
     if keyword_set(add) then paths = [paths,strsplit(!path, sep1, /extract)]
@@ -139,15 +139,13 @@ pro sidlpath, path, filename = file, rootdir = rootdir, $
     npath = n_elements(paths)
     
     ; uniqueness check.
-    if keyword_set(unique) then begin
-        tmp = reverse(paths)        ; reverse b/c uniq keeps the last duplicate.
-        idx = uniq(tmp, sort(tmp))  ; get unique index.
-        idx = idx[sort(idx)]        ; sort to recover the ordering.
-        tmp = tmp[idx[sort(idx)]]
-        paths = reverse(tmp)        ; we want to keep the first duplicate.
-    endif
-    
-    tpath = strjoin(paths[idx],sep1)
+    tmp = reverse(paths)        ; reverse b/c uniq keeps the last duplicate.
+    idx = uniq(tmp, sort(tmp))  ; get unique index.
+    idx = idx[sort(idx)]        ; sort to recover the ordering.
+    tmp = tmp[idx[sort(idx)]]
+    paths = reverse(tmp)        ; we want to keep the first duplicate.
+
+    tpath = strjoin(paths,sep1)
 
     ; commit the changes to IDL path.
     pref_set, 'IDL_PATH', tpath, /commit
