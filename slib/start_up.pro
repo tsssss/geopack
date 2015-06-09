@@ -61,7 +61,7 @@ pro start_up, file, rootdir = rootdir
     readf, lun, paths
     free_lun, lun
 
-    tpath = strjoin(path, sep1)
+    tpath = strjoin(paths, sep1)
     paths = strsplit(tpath, ';:,', /extract)    ; all possible path separators.
     npath = n_elements(paths)
 
