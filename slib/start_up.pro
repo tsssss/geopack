@@ -91,19 +91,20 @@ pro start_up, file, rootdir = rootdir
     for i = 0, npath-1 do begin
         pos = strpos(paths[i],'..')
         if pos lt 0 then continue
-        cnt = 0
+        cnt = 0     ; how many levels to go up.
         repeat begin
             cnt+= 1
             paths[i] = strmid(paths[i],0,pos)+strmid(paths[i],pos+3)
             pos = strpos(paths[i],'..')
         endrep until pos lt 0
-        tmp = strsplit(rootdir,path_sep(),/extract)
-        if strmid(rootdir,0,1) eq path_sep() then tmp = ['',tmp]
+        tmp = strsplit(rootdir,sep,/extract)
+        if strmid(rootdir,0,1) eq sep then tmp = ['',tmp]
         cnt = n_elements(tmp)-1-cnt > 0
-        paths[i] = strjoin(tmp[0:cnt],path_sep())+paths[i]
+        paths[i] = strjoin([tmp[0:cnt],''],sep)+paths[i]
         pos = strpos(paths[i],'+')
         if pos lt 0 then continue
         paths[i] = '+'+strmid(paths[i],0,pos)+strmid(paths[i],pos+1)
+        paths[i] = strjoin(strsplit(paths[i],sep,/extract),sep)
     endfor
 
     ; deal with '+'.
