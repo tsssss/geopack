@@ -136,7 +136,7 @@ pro setidlpath, f0, outfile = ofn0, idlexe = idlexe, $
     if file_test(f0[0]) eq 0 then begin     ; list of entries.
         infos = f0
     endif else begin                        ; a file contains entry list.
-        ninfo = file_infos(f0)
+        ninfo = file_lines(f0)
         infos = strarr(ninfo)
         openr, lun, f0, /get_lun
         readf, lun, infos
@@ -146,6 +146,12 @@ pro setidlpath, f0, outfile = ofn0, idlexe = idlexe, $
 
 
 ; **** parse the entry list.
+
+    ; remove empty lines.
+    idx = where(infos ne '', cnt)
+    if cnt eq 0 then message, 'no path info ...'
+    infos = infos[idx]
+    ninfo = cnt
 
     ; extract output file.
     pos = stregex(infos,'\$OUTFILE')
@@ -241,7 +247,7 @@ pro setidlpath, f0, outfile = ofn0, idlexe = idlexe, $
         dir = file_dirname(ofn0)
     endif else dir = home
     if file_test(dir,/directory) eq 0 then dir = home
-    ofn = dir+'/'+ofn+'.'+ext
+    ofn = dir+'/'+file_basename(ofn)+'.'+ext
     ofn = strjoin(strsplit(ofn,'\',/extract),sep1)
 
 
@@ -256,6 +262,5 @@ pro setidlpath, f0, outfile = ofn0, idlexe = idlexe, $
 end
 
 f0 = ['+.','$OUTFILE=myidl']
-;f0 = ['$R = hahah','+$R/hehe']
 setidlpath, f0
 end
