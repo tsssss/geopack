@@ -1,20 +1,13 @@
 ;+
 ; Type: function.
-;
 ; Purpose: Breaks down time range into given time difference.
-;
 ; Parameters:
 ; 	ets, in, dblarr[2], required. Time range in epoch.
 ; 	dt, in, double, optional. Time difference. Default in days.
-;
 ; Keywords: none.
-;
 ; Return: dblarr[2]/dblarr[2,n]. Each two pairs are [start, end] epochs.
-; 
 ; Notes: none.
-; 
 ; Dependence: none.
-; 
 ; History:
 ; 	2013-04-04, Sheng Tian, create.
 ;-

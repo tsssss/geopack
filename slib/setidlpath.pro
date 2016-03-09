@@ -35,7 +35,8 @@
 ;           The trailing / or \ is optional.
 ;       1,  You can include subdirectories recursively using '+'. For example
 ;               +/Users/sheng/Dropbox/slib/
-;       2,  Relative path is allowed. There are 3 ways to do it.
+;       2,  You can exclude a folder by prefix '-'.
+;       3,  Relative path is allowed. There are 3 ways to do it.
 ;           a)  Refer to certain directory. For example, here's how to include
 ;               both path/ and math/ folders in the root directory
 ;                   $R = /Users/sheng/Dropbox/slib/
@@ -65,7 +66,7 @@
 ;               ~/codes/. This design allows an easy switch between different
 ;               libraries, simply put f0 with the desired path info under
 ;               each library's root directory.
-;       3,  Output executable file can be set as an entry in the format of
+;       4,  Output executable file can be set as an entry in the format of
 ;                   $OUTFILE = ~/idl
 ; Dependence: none.
 ; History:

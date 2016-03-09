@@ -56,7 +56,7 @@ function sprepfile, tr0, dt = dt, paths = paths, flags = flags
         tpaths = paths
         if cnt ne 0 then begin
             tmp = strjoin(tpaths[idx],'%')
-            tmp = sfmepoch(ets[i,0],tmp)
+            tmp = sfmepoch(ets[0,i],tmp)
             tpaths[idx] = strsplit(tmp,'%',/extract)
         endif
         files[i] = strjoin(tpaths,'/')
