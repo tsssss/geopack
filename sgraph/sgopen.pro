@@ -1,3 +1,22 @@
+;+
+; Type: procedure.
+; Purpose: Open a canvas.
+; Parameters:
+;   id0, in, string/number, opt. The canvas id. Can be a file name for devices
+;       like 'ps','z', can be window id for 'win' or 'x'. Default is window 0.
+; Keywords:
+;   xsize, in, int, opt. Canvas xsize. Default is current device's xsize.
+;   ysize, in, int, opt. Canvas ysize. Default is current device's ysize.
+;   cm, in, boolean, opt. Set the size unit to be cm, default unit is pixel.
+;   inch, in, boolean, opt. Set the size unit to be inch.
+;   magnify, in, float, opt. Magnify the whole canvas proportionally.
+;   background, in, long, opt. Background color in true color.
+; Notes: none.
+; Dependence: slib.
+; History:
+;   2015-11-06, Sheng Tian, create.
+;   2016-03-21, Sheng Tian, document.
+;-
 
 pro sgopen, id0, xsize = xsize, ysize = ysize, cm = cm, inch = inch, $
     magnify = magc0, background = bgc0, _extra = extra

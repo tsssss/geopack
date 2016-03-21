@@ -1,15 +1,15 @@
 ;+
-; Type: <+++>.
-; Purpose: <+++>.
-; Parameters: <+++>.
-;   <+varname+>, <+in/out+>, <+datatype+>, <+req/opt+>. <+++>.
-; Keywords: <+++>.
-;   <+varname+>, <+in/out+>, <+datatype+>, <+req/opt+>. <+++>.
-; Return: <+++>.
-; Notes: <+++>.
-; Dependence: <+++>.
+; Type: procedure.
+; Purpose: Cloase a canvas.
+; Parameters: none.
+; Keywords:
+;   wdelete, in, boolean, opt. Close window in 'x' or 'win'. Default
+;       behaviour is to leave the window opened.
+; Notes: none.
+; Dependence: slib.
 ; History:
-;   <+yyyy-mm-dd+>, Sheng Tian, create.
+;   2015-11-06, Sheng Tian, create.
+;   2016-03-21, Sheng Tian, create.
 ;-
 
 

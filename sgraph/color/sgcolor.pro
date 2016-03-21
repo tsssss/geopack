@@ -37,7 +37,7 @@ function sgcolor, c0, ct = ct1, ct2 = ct2, triplet = triplet, names = names
     endif else begin    ; c0 is in number, interpret as index color.
         if ~keyword_set(ct1) or ~keyword_set(ct2) then ct1 = 0
         if keyword_set(ct1) then loadct, ct1, rgb_table = rgb0, /silent
-;        if keyword_set(ct2) then loadct2, ct2, rgb_table = rgb0, /silent
+        if keyword_set(ct2) then loadct2, ct2, rgb_table = rgb0, /silent
         nc = n_elements(rgb0)/3
         rgb = rgb0[c0 mod nc,*]
     endelse
