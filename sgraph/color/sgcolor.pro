@@ -5,8 +5,9 @@
 ;   c0, in, strarr/intarr, req. Input color(s), string for true color, 
 ;       int for index color.
 ; Keywords:
-;   ct, in, int, opt. Color table number, set if color is in int.
-;   ct2, in, int/boolean, opt. Set to load ct by loadct2.
+;   ct, in, int, opt. The color table number, set if color is in int.
+;   file, in, string, opt. Set the file name of color table files, then ct is
+;       the color table id in that file.
 ;   triplet, in, boolean, opt. Set to return [n,3] color in rrggbb.
 ;   names, in, boolean, opt. Set to return all colors IDL knows.
 ; Return: bytarr[n,3]/tripletarr[n]. Color in true color regime, 
@@ -17,7 +18,7 @@
 ;   2014-04-05, Sheng Tian, create.
 ;-
 
-function sgcolor, c0, ct = ct1, ct2 = ct2, triplet = triplet, names = names
+function sgcolor, c0, ct = ct, file = file, triplet = triplet, names = names
     common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
     
     colors = tag_names(!color)
@@ -35,9 +36,13 @@ function sgcolor, c0, ct = ct1, ct2 = ct2, triplet = triplet, names = names
             rgb[i,*] = !color.(idx)
         endfor
     endif else begin    ; c0 is in number, interpret as index color.
-        if ~keyword_set(ct1) or ~keyword_set(ct2) then ct1 = 0
-        if keyword_set(ct1) then loadct, ct1, rgb_table = rgb0, /silent
-        if keyword_set(ct2) then loadct2, ct2, rgb_table = rgb0, /silent
+        if keyword_set(ct) eq 0 then ct = 0
+        if n_elements(file) ne 0 then begin
+            ctfn = srootdir()+'/'+file+'.tbl'
+            loadct, ct, rgb_table = rgb0, /silent, file = ctfn
+            tmp = [[0,1,0,0,0,1,1,1],[0,0,0,1,1,1,0,1],[0,1,1,1,0,0,0,1]]*255b
+            rgb0[0:7,*] = tmp
+        endif else loadct, ct, rgb_table = rgb0, /silent
         nc = n_elements(rgb0)/3
         rgb = rgb0[c0 mod nc,*]
     endelse
@@ -48,6 +53,6 @@ function sgcolor, c0, ct = ct1, ct2 = ct2, triplet = triplet, names = names
     return, rgb
 end
 
-print, sgcolor([6,4,2])
-print, sgcolor(['red','green','blue'])
+print, sgcolor([6,4,2], file = 'ct2')
+print, sgcolor(['red','lime','blue'])
 end

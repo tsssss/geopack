@@ -6,13 +6,14 @@
 ;       the current device.
 ; Keywords:
 ;   ct, in, int, opt. The color table. Do not load color table if no id is set.
-;   ct2, in, int/boolean, opt. Set to use loadct2.
+;   file, in, string, opt. Set the file name of color table files, then ct is
+;       the color table id in that file.
 ; Notes: none.
 ; Dependence: none.
 ; History:
 ;   2014-04-08, Sheng Tian, create.
 ;-
-pro sgindexcolor, dev0, ct = ct, ct2 = ct2, _extra = ex
+pro sgindexcolor, dev0, ct = ct, file = file, _extra = ex
     on_error, 2
     
     case size(dev0,/type) of
@@ -35,9 +36,10 @@ pro sgindexcolor, dev0, ct = ct, ct2 = ct2, _extra = ex
     endcase
     
     ; load color table.
-    if keyword_set(ct2) then begin
-        if n_elements(ct) ne 0 then loadct2, ct, _extra = ex $
-        else loadct2, ct2, _extra = ex
-    endif else if keyword_set(ct) then loadct, ct, _extra = ex
+    if n_elements(ct) eq 0 then ct = 0
+    if n_elements(file) ne 0 then begin
+        ctfn = srootdir()+'/'+file+'.tbl'
+        loadct, ct, file = ctfn, _extra = ex
+    endif else loadct, ct, _extra = ex
 
 end
