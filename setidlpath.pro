@@ -227,7 +227,8 @@ pro setidlpath, f0, outfile = ofn0, idlexe = idlexe, $
 
 ; **** assemble the command.
 
-    sep1 = path_sep()
+;    sep1 = path_sep()
+    sep1 = '/'
     for i = 0, ninfo-1 do $
         infos[i] = strjoin(strsplit(infos[i],'\',/extract),sep1)
 

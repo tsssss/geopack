@@ -21,6 +21,7 @@
 ;       existence of rootdir, if not, set it to current directory.
 ;   reset, in, boolean, optional. Reset IDL path to original status. Used 
 ;       separately because setting it will omit all other functionalities.
+;   current, in, boolean, optional. Save current !path to user preference file.
 ;   add, in, boolean, optional. Set to add to existing paths (in front of).
 ;   append, in, boolean, optional. Set to append to existing paths (after).
 ;
@@ -36,12 +37,17 @@
 ;-
 
 pro sidlpath, infos, filename = file, rootdir = rootdir, $
-    reset = reset, add = add, append = append
+    reset = reset, add = add, append = append, current = current
 
     ; reset IDL !path.
     if keyword_set(reset) then begin
         tinfo = expand_path('<IDL_DEFAULT>')
         pref_set, 'IDL_PATH', tinfo, /commit
+        return
+    endif
+    
+    if keyword_set(current) then begin
+        pref_set, 'IDL_PATH', !path, /commit
         return
     endif
 
