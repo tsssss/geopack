@@ -15,7 +15,7 @@
 ;-
 pro sgindexcolor, dev0, ct = ct, file = file, _extra = ex
     on_error, 2
-    
+        
     case size(dev0,/type) of
         0: dev = !d.name        ; no device.
         7: dev = dev0           ; dev0 is device string.

@@ -43,7 +43,7 @@ pro sgtv, img0, position = pos0, ct = ct0, file = file, _extra = extra
         ; determine and load color table.
         ncolor = 255
         if n_elements(ct0) eq 0 then tvlct, rgb1, /get $
-        else rgb1 = sgcolor(bindgen(ncolor), ct = ct, file = file, /triplet)
+        else rgb1 = sgcolor(bindgen(ncolor), ct = ct0, file = file, /triplet)
         
         img[0,*,*] = rgb1[img0 mod ncolor,0]
         img[1,*,*] = rgb1[img0 mod ncolor,1]
@@ -103,9 +103,10 @@ sgtruecolor
 sz = [500,300]
 img0 = dist(sz[0],sz[1])
 img0 = bytscl(img0,min=0,top=255)
-ct = 43
+ct = 40
 
 sgopen, dir+'/test.pdf', xsize = 500, ysize = 300
+sgtruecolor
 erase, color = sgcolor('white')
 ;polyfill, [1,1,0,0,1], [1,0,0,1,1], /normal, color = sgcolor('grey')
 ;plot, findgen(10), color = sgcolor('lime'), /noerase, /nodata
@@ -118,7 +119,7 @@ sgtruecolor
 erase, color = sgcolor('white')
 ;plot, findgen(10), color = sgcolor('lime'), /noerase, /nodata
 ;oplot, findgen(10), color = sgcolor('yellow')
-sgtv, img0, position = [0.1,0.1,0.9,0.9], ct = ct, file = 'ct2'
+sgtv, img0, position = [0.1,0.1,0.9,0.9], ct = ct;, file = 'ct2'
 sgclose
 
 end
