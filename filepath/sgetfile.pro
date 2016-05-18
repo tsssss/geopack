@@ -49,12 +49,15 @@ function sgetfile, basefn, locpath0, rempath0, $
         
         remidx = rempath+'/'+remidx     ; also applies to remote directory.
         locidx = locpath+'/'+locidx
+        
+        ; may consider to check locidx's mtime
+        ; if mtime is old enough, do not check remidx.
 
         idxinfo = surlinfo(remidx)
         if size(idxinfo,/type) ne 8 then return, '' ; no remote directory or index.
         
         ; download remote folder or index file to local directory.
-;        if file_test() eq 1 then file_delete, locidx
+;        if file_test(locidx) eq 1 then file_delete, locidx
         s_curl, remidx, locidx, idxinfo
         
         ; read local index file.
