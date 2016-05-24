@@ -21,6 +21,16 @@
 function sgcolor, c0, ct = ct, file = file, triplet = triplet, names = names
     common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
     
+    defsysv, '!color', exists = flag
+    if flag eq 0 then begin
+        tmp = srootdir()+'/color_idl*'
+        tmp = file_search(tmp, cnt)
+        if cnt eq 0 then begin
+            color = {'red':[255b,0,0], 'green':[0b,127,0], 'blue':[0b,0,255]}
+        endif else restore, filename = tmp[0]
+        defsysv, '!color', color
+    endif
+
     colors = tag_names(!color)
     if keyword_set(names) then return, colors
 
