@@ -18,7 +18,8 @@ pro sgtruecolor, dev
     
     dev = strlowcase(!d.name)
     case dev of
-        'ps': device, decomposed = 1, /color, bits_per_pixel = 8
+        'ps': if !version.release ge 7.1 then $
+            device, decomposed = 1, /color, bits_per_pixel = 8
         'z': device, decomposed = 1, set_pixel_depth = 24
         'x': device, decomposed = 1
         'win': device, decomposed = 1

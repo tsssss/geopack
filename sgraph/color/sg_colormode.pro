@@ -30,7 +30,8 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
         if n_elements(dec) eq 0 then dec = 0
         if n_elements(depth) eq 0 then depth = (dec eq 0)? 8: 24
         case dev1 of
-            'ps': device, decomposed = dec, /color, bits_per_pixel = depth
+            'ps': if float(!version.release) ge 7.1 then $
+                device, decomposed = dec, /color, bits_per_pixel = depth
             'z': device, decomposed = dec, set_pixel_depth = depth
             'x': device, decomposed = dec
             'win': device, decomposed = dec
