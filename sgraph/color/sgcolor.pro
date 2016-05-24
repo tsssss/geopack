@@ -21,17 +21,16 @@
 function sgcolor, c0, ct = ct, file = file, triplet = triplet, names = names
     common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
     
-    defsysv, '!color', exists = flag
-    if flag eq 0 then begin
+    if float(!version.release) lt 8 then begin
         tmp = srootdir()+'/color_idl*'
-        tmp = file_search(tmp, cnt)
-        if cnt eq 0 then begin
-            color = {'red':[255b,0,0], 'green':[0b,127,0], 'blue':[0b,0,255]}
-        endif else restore, filename = tmp[0]
-        defsysv, '!color', color
-    endif
+        tmp = file_search(tmp, count = cnt)
+        if cnt ne 0 then restore, filename = tmp[0]
+    endif else color = !color
+    if n_elements(color) eq 0 then $
+        color = {red:[255b,0,0], green:[0b,127,0], blue:[0b,0,255], $
+            white:[255b,255,255], black:[0b,0,0]}
 
-    colors = tag_names(!color)
+    colors = tag_names(color)
     if keyword_set(names) then return, colors
 
     ncolor = n_elements(c0)
@@ -43,7 +42,7 @@ function sgcolor, c0, ct = ct, file = file, triplet = triplet, names = names
         for i = 0, ncolor-1 do begin
             idx = where(strupcase(c0[i]) eq colors, cnt)
             if cnt eq 0 then message, c0+', no such color ...'
-            rgb[i,*] = !color.(idx)
+            rgb[i,*] = color.(idx)
         endfor
     endif else begin    ; c0 is in number, interpret as index color.
         if keyword_set(ct) eq 0 then ct = 0
