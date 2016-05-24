@@ -39,11 +39,11 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
     endif else begin
         case dev1 of
             'ps': begin
-                if float(!versin.release) gt 7.1 then begin
+                if float(!version.release) gt 7.1 then begin
                     device, get_decomposed = dec
                 endif else begin
                     help, /device, output = tmp
-                    dec = strpos(strupcase(tmp[4]), 'DECOMPOSED')) ne -1
+                    dec = (strpos(strupcase(tmp[4]), 'DECOMPOSED') ne -1)
                 endelse
                 if dec then depth = 24 else depth = 8
             end
@@ -57,6 +57,8 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
                 depth = 8
             end
         endcase
+        dec = long(dec[0])
+        depth = long(depth[0])
     endelse
 
     if dev1 ne dev0 then set_plot, dev0
