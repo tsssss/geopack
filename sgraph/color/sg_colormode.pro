@@ -39,7 +39,12 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
     endif else begin
         case dev1 of
             'ps': begin
-                device, get_decomposed = dec
+                if float(!versin.release) gt 7.1 then begin
+                    device, get_decomposed = dec
+                endif else begin
+                    help, /device, output = tmp
+                    dec = strpos(strupcase(tmp[4]), 'DECOMPOSED')) ne -1
+                endelse
                 if dec then depth = 24 else depth = 8
             end
             'z': begin
@@ -47,6 +52,10 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
             end
             'x': device, get_decomposed = dec, get_visual_depth = depth
             'win': device, get_decomposed = dec, get_visual_depth = depth
+            else: begin
+                dec = 0
+                depth = 8
+            end
         endcase
     endelse
 
