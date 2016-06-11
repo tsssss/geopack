@@ -44,8 +44,13 @@ function sgetfile, basefn, locpath0, rempath0, $
     remfn = rempath+'/'+basefn
     reminfo = surlinfo(remfn)
     
+    ; check if hit the remote file.
+    flag = 0
+    if size(reminfo,/type) ne 8 then flag = 1 else if $
+        reminfo.size eq 0 then flag = 1
+    
     ; find the remote file using remote folder or index file.
-    if size(reminfo,/type) ne 8 then begin
+    if flag eq 1 then begin
         
         remidx = rempath+'/'+remidx     ; also applies to remote directory.
         locidx = locpath+'/'+locidx

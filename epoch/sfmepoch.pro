@@ -37,10 +37,7 @@ function sfmepoch, et0s, format, epoch16 = epoch16, tt2000 = tt2000
     if keyword_set(epoch16) then begin
         if fmt0 eq 'epoch16' then return, et0s
         ets = real_part(et0s)*1d3+imaginary(et0s)*1d-9
-    endif else ets = et0s
-    
-    ; check epoch_tt2000.
-    if keyword_set(tt2000) then begin
+    endif else if keyword_set(tt2000) then begin
         if fmt0 eq 'tt2000' then return, et0s
         cdf_tt2000, et0s[0], yr, mo, dy, hr, mi, sc, mil, mic, nan, /breakdown_epoch
         cdf_epoch, tmp, yr, mo, dy, hr, mi, sc, double(mil)+1d-3*(mic+1d-3*nan), /compute_epoch

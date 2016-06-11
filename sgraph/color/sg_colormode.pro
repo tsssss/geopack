@@ -30,7 +30,8 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
         if n_elements(dec) eq 0 then dec = 0
         if n_elements(depth) eq 0 then depth = (dec eq 0)? 8: 24
         case dev1 of
-            'ps': device, decomposed = dec, /color, bits_per_pixel = depth
+            'ps': if float(!version.release) ge 7.1 then $
+                device, decomposed = dec, /color, bits_per_pixel = depth
             'z': device, decomposed = dec, set_pixel_depth = depth
             'x': device, decomposed = dec
             'win': device, decomposed = dec
@@ -39,7 +40,12 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
     endif else begin
         case dev1 of
             'ps': begin
-                device, get_decomposed = dec
+                if float(!version.release) gt 7.1 then begin
+                    device, get_decomposed = dec
+                endif else begin
+                    help, /device, output = tmp
+                    dec = (strpos(strupcase(tmp[4]), 'DECOMPOSED') ne -1)
+                endelse
                 if dec then depth = 24 else depth = 8
             end
             'z': begin
@@ -47,7 +53,13 @@ pro sg_colormode, dev, decomposed = dec, depth = depth, set = set
             end
             'x': device, get_decomposed = dec, get_visual_depth = depth
             'win': device, get_decomposed = dec, get_visual_depth = depth
+            else: begin
+                dec = 0
+                depth = 8
+            end
         endcase
+        dec = long(dec[0])
+        depth = long(depth[0])
     endelse
 
     if dev1 ne dev0 then set_plot, dev0
