@@ -56,7 +56,25 @@ pro sps2pdf, fns, rm = rm
             endfor
             ; do conversion.
             spawn, cmd, ostr, errmsg
-            if errmsg ne '' then message, 'cannot find ps2pdf ...'
+            
+            if errmsg[0] ne '' then begin
+                cmd = 'pstopdf '
+                cmd+= '"'+ifn+'" "'+ofn+'"'
+            
+                ; for Unix/Linux/Mac OS.
+                paths = ['/usr/local/bin','/usr/bin','/bin','/usr/sbin', $
+                    '/sbin','/opt/X11/bin','/usr/texbin','/opt/local/bin']
+                spawn, 'which pstopdf', ostr
+                if ostr ne '' then paths = [file_dirname(ostr),paths]
+                for j = 0, n_elements(paths)-1 do begin
+                    if file_test(paths[j]+'/pstopdf') eq 0 then continue
+                    setenv, 'PATH='+getenv('PATH')+':'+paths[j]
+                    break
+                endfor
+                ; do conversion.
+                spawn, cmd, ostr, errmsg
+            endif
+            if errmsg[0] ne '' then message, 'cannot find ps2pdf or pstopdf ...'
         endif
 
         ; remove ps/eps files.
