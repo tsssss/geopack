@@ -70,6 +70,13 @@ function scdfread, cdf0, vnames, recs0, drec = drec, skt = skt, silent = silent
     
     if n_elements(drec) eq 0 then drec = 1
 
+    ; get cdf id.
+    if size(cdf0, /type) eq 7 then begin
+        if ~file_test(cdf0) then $
+            message, 'file ' + cdf0 + ' does not exist ...'
+        cdfid = cdf_open(cdf0)
+    endif else cdfid = cdf0
+
     ; read skeleton.
     if n_elements(skt) eq 0 then scdfskt, cdf0, skt
 
@@ -87,12 +94,6 @@ function scdfread, cdf0, vnames, recs0, drec = drec, skt = skt, silent = silent
         2: recs = [[replicate(recs0[0],nvar)],[replicate(recs0[1],nvar)]]
     endcase
     
-    ; get cdf id.
-    if size(cdf0, /type) eq 7 then begin
-        if ~file_test(cdf0) then $
-            message, 'file ' + cdf0 + ' does not exist ...'
-        cdfid = cdf_open(cdf0)
-    endif else cdfid = cdf0
     
     ; read vars.
     vars = []
