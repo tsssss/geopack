@@ -91,11 +91,42 @@ function sgnum2str, num0, ndec = ndec0, mdec = mdec0, $
     str0 = strtrim(string(num0),2)
     ; remove trailing 0 in decimal part, and unnecessary decimal point.
     pos = strpos(str0, '.')
+    ; scitific notation in 1e-30 or 1e30, or in normal notation.
     if pos ne -1 then begin
-        while strmid(str0,strlen(str0)-1) eq '0' do $
-            str0 = strmid(str0,0,strlen(str0)-1)
-        if strmid(str0,strlen(str0)-1) eq '.' then $
-            str0 = strmid(str0,0,strlen(str0)-1)
+        tmp = stregex(strmid(str0,pos+1),'[0-9]+',length=len)
+        tmp = ''
+        if len gt 0 then begin  ; 1. or 1.e30.
+            tmp = strmid(str0,pos+1,len)
+            while strmid(tmp,strlen(tmp)-1) eq '0' do $
+                tmp = strmid(tmp,0,strlen(tmp)-1)
+        endif
+        if strlen(tmp) eq 0 then str0 = strmid(str0,0,pos)+strmid(str0,pos+len+1) $
+        else str0 = strmid(str0,0,pos+1)+tmp+strmid(str0,pos+len+1)
+    endif
+    ; scitific notation in 1e30.
+    pos = strpos(str0, '+')
+    if pos ne -1 then begin
+        tmp = stregex(strmid(str0,pos+1),'[0-9]+',length=len)
+        tmp = ''
+        if len gt 0 then begin
+            tmp = strmid(str0,pos+1,len)
+            while strmid(tmp,0,1) eq '0' do $
+                tmp = strmid(tmp,1)
+        endif
+        str0 = strmid(str0,0,pos)+tmp+strmid(str0,pos+len+1)
+    endif
+    ; scitific notation in 1e-30.
+    pos = strpos(str0, '-')
+    if pos ne -1 then begin
+        tmp = stregex(strmid(str0,pos+1),'[0-9]+',length=len)
+        tmp = ''
+        if len gt 0 then begin
+            tmp = strmid(str0,pos+1,len)
+            while strmid(tmp,0,1) eq '0' do $
+                tmp = strmid(tmp,1)
+        endif
+        if strlen(tmp) eq 0 then str0 = strmid(str0,0,pos)+strmid(str0,pos+len+1) $
+        else str0 = strmid(str0,0,pos+1)+tmp+strmid(str0,pos+len+1)
     endif
     if n_elements(ndec0) eq 0 and n_elements(nsgn0) eq 0 $
     and n_elements(mdec0) eq 0 and n_elements(msgn0) eq 0 then return, str0

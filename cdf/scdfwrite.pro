@@ -1,5 +1,5 @@
 
-pro scdfwrite, cdf0, vname, recs, skt = skt, value = val, attributes = attinfo
+pro scdfwrite, cdf0, vname, recs, skt = skt, value = val, attributes = attinfo, reset = reset
 
     compile_opt idl2
     on_error, 0
@@ -18,7 +18,7 @@ pro scdfwrite, cdf0, vname, recs, skt = skt, value = val, attributes = attinfo
 
 
     ; read skeleton.
-    if n_elements(skt) eq 0 then scdfskt, cdf0, skt
+    if n_elements(skt) eq 0 then scdfskt, cdfid, skt
 
     ; original variable names.
     novar = skt.header.nrvar+skt.header.nzvar
@@ -29,11 +29,18 @@ pro scdfwrite, cdf0, vname, recs, skt = skt, value = val, attributes = attinfo
         if cnt eq 0 then newvar = 1 else newvar = 0
     endelse
     
+    if newvar eq 0 and keyword_set(reset) then begin
+        newvar = 1
+        for i = 0, novar-1 do if skt.var.(i).name eq vname then break
+        vattinfo0 = skt.var.(i).att
+        cdf_vardelete, cdfid, vname, zvariable = skt.var.(i).iszvar
+    endif
+    
     if newvar eq 1 then begin
         if n_elements(dimvary) eq 0 then begin
-            varid = cdf_varcreate(cdfid, vname, _extra = extra)
+            varid = cdf_varcreate(cdfid, vname, _extra = extra, /zvariable)
         endif else begin
-            varid = cdf_varcreate(cdfid, vname, dimvary, _extra = extra)
+            varid = cdf_varcreate(cdfid, vname, dimvary, _extra = extra, /zvariable)
         endelse
     endif
 
@@ -56,6 +63,14 @@ pro scdfwrite, cdf0, vname, recs, skt = skt, value = val, attributes = attinfo
         endfor
     endif
     
+    if n_elements(vattinfo0) ne 0 then begin
+        vattnames = tag_names(vattinfo0)
+        nvattname = n_elements(vattnames)
+        for i = 0, nvattname-1 do begin
+            cdf_attput, cdfid, vattnames[i], vname, vattinfo0.(i).value
+        endfor
+    endif
+    
     cdf_close, cdfid
 
 end
@@ -67,7 +82,7 @@ scdfwrite, fn, vname, value = val
 cdf = scdfread(fn, vname)
 print, *cdf[0].value
 
-val = 2
+val = [2,3,4]
 scdfwrite, fn, vname, value = val
 cdf = scdfread(fn, vname)
 print, *cdf[0].value
