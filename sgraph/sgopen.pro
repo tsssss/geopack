@@ -163,6 +163,7 @@ pro sgopen, id0, xsize = xsize, ysize = ysize, cm = cm, inch = inch, $
     ; set the new device to sgraph config.
     device, _extra = opt
     !p.font = 1
+    !p.charsize = 1
     !p.thick = mode.thick
     !p.charthick = mode.thick
     !x.thick = mode.thick & !y.thick = mode.thick & !z.thick = mode.thick
