@@ -62,7 +62,7 @@ pro sgtv, img0, position = pos0, ct = ct0, file = file, _extra = extra
 ;    sgtruecolor
     
     ; deal with position.
-    if n_elements(pos0) eq 0 then pos1 = sgcalcpos()
+    if n_elements(pos0) eq 0 then pos0 = sgcalcpos()
 
     ; centering image, if shrink is needed.
     pos1 = convert_coord(pos0[[0,2]],pos0[[1,3]],/normal,/to_device)
