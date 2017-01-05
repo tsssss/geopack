@@ -116,7 +116,7 @@ function sgcalcpos, nypanel, nxpanel, ypad = ypad0, xpad = xpad0, $
     ypans = dblarr(nypan)+ypan
     
     ; upper left position.
-    pos[0,0,*] = lmg
+;    pos[0,0,*] = lmg
     for i = 0, nxpan-2 do pos[0,i+1,*] = pos[0,i,*]+xpads[i]+xpans[i]
     pos[3,*,0] = y1-tmg
     for i = 0, nypan-2 do pos[3,*,i+1] = pos[3,*,i]-ypads[i]-ypans[i]
