@@ -42,9 +42,9 @@ function stoepoch, t0s, format, epoch16 = epoch16, tt2000 = tt2000
     
     ; tt2000.
     if fmt0 eq 'tt2000' then begin
-        cdf_tt2000, et0s[0], yr, mo, dy, hr, mi, sc, mil, mic, nan, /breakdown_epoch
+        cdf_tt2000, t0s[0], yr, mo, dy, hr, mi, sc, mil, mic, nan, /breakdown_epoch
         cdf_epoch, tmp, yr, mo, dy, hr, mi, sc, double(mil)+1d-3*(mic+1d-3*nan), /compute_epoch
-        return, (et0s-et0s[0])*1d-6+tmp
+        return, (t0s-t0s[0])*1d-6+tmp
     endif
 
     ; unix time, sec from 1970-01-01 00:00:00.000 UTC.

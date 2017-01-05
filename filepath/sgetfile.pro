@@ -67,6 +67,7 @@ function sgetfile, basefn, locpath0, rempath0, $
         
         ; read local index file.
         nline = file_lines(locidx)
+        if nline eq 0 then return, ''
         lines = strarr(nline)
         openr, lun, locidx, /get_lun
         readf, lun, lines
