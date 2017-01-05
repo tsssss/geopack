@@ -62,7 +62,7 @@ function sgetfile, basefn, locpath0, rempath0, $
         if size(idxinfo,/type) ne 8 then return, '' ; no remote directory or index.
         
         ; download remote folder or index file to local directory.
-        if file_test(locidx) eq 1 then file_delete, locidx
+;        if file_test(locidx) eq 1 then file_delete, locidx
         s_curl, remidx, locidx, idxinfo
         
         ; read local index file.
