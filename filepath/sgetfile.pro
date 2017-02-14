@@ -46,8 +46,10 @@ function sgetfile, basefn, locpath0, rempath0, $
     
     ; check if hit the remote file.
     flag = 0
-    if size(reminfo,/type) ne 8 then flag = 1 else if $
-        reminfo.size eq 0 then flag = 1
+    if size(reminfo,/type) ne 8 then flag = 1 else begin
+        if reminfo.size eq 0 then flag = 1
+        if reminfo.mtime eq 0 then flag = 1
+    endelse
     
     ; find the remote file using remote folder or index file.
     if flag eq 1 then begin
@@ -89,6 +91,9 @@ function sgetfile, basefn, locpath0, rempath0, $
         
         reminfo = surlinfo(remfn)
     endif
+    
+    ; no remote file.
+    if flag2 eq 0 then return, locfn
     
     ; decide download or not.
     download = 1
