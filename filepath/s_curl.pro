@@ -15,7 +15,8 @@ pro s_curl, remfn, locfn, reminfo
     
     if n_elements(reminfo) eq 0 then reminfo = surlinfo(remfn)
     if size(reminfo,/type) ne 8 then return     ; no remote directory.
-
+    
+    
     ; prepare remote info.
     server = reminfo.server
     port = reminfo.port
@@ -36,8 +37,27 @@ pro s_curl, remfn, locfn, reminfo
     printf, remlun, ''
     
     ; read header.
+    header = ''
     tline = 'xxx'
-    while tline ne '' do readf, remlun, tline
+    while tline ne '' do begin
+        readf, remlun, tline
+        header = [header,tline]
+    endwhile
+    
+    
+;    ; treat code 301. !!!Does not work.
+;    idx = stregex(header, '301 Moved Permanently')
+;    idx = where(idx ne -1, cnt)
+;    if cnt ne 0 then begin
+;        idx = stregex(header, 'Location:')
+;        idx = where(idx ne -1)  ; should contain the new location.
+;        tline = header[idx[0]]
+;        idx = strpos(tline,':')
+;        tremfn = strtrim(strmid(tline, idx+1),2)
+;        if tremfn ne remfn then s_curl, tremfn, locfn
+;    endif
+    
+
     
     ; download file.
     console = -1
@@ -102,7 +122,9 @@ end
 
 remfn = 'http://themis.ssl.berkeley.edu/data/rbsp/rbspb/l1/vb1/2015/'
 ;remfn = 'http://themis.ssl.berkeley.edu/data/rbsp/rbspa/l1/spec/2013/
-locfn = shomedir()+'/idx.html'
+remfn = 'https://cdaweb.gsfc.nasa.gov/pub/data/rbsp/rbspa/l2/efw/esvy_despun/2012/rbspa_efw-l2_esvy_despun_20121120_v01.cdf'
+remfn = 'http://rbsp.space.umn.edu/data/rbsp/rbspa/l2/esvy_despun/2012/rbspa_efw-l2_esvy_despun_20121120_v01.cdf'
+locfn = shomedir()+'/test_download.cdf'
 s_curl, remfn, locfn
 
 end

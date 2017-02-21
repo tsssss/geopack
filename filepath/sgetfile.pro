@@ -11,7 +11,7 @@
 function sgetfile, basefn, locpath0, rempath0, $
     locidx = locidx0, remidx = remidx0, $
     check_mtime = check_mtime, check_fsize = check_fsize, $
-    force_download = force_download
+    force_download = force_download, use_local_index = use_local_index
 
     ; check local directory.
     if n_elements(locpath0) eq 0 then message, 'no local path ...'
@@ -45,7 +45,7 @@ function sgetfile, basefn, locpath0, rempath0, $
     reminfo = surlinfo(remfn)
     
     ; check if hit the remote file.
-    flag = 0
+    flag = 0    ; 1 for not hit.
     if size(reminfo,/type) ne 8 then flag = 1 else begin
         if reminfo.size eq 0 then flag = 1
         if reminfo.mtime eq 0 then flag = 1
@@ -56,16 +56,25 @@ function sgetfile, basefn, locpath0, rempath0, $
         
         remidx = rempath+'/'+remidx     ; also applies to remote directory.
         locidx = locpath+'/'+locidx
-        
-        ; may consider to check locidx's mtime
-        ; if mtime is old enough, do not check remidx.
 
-        idxinfo = surlinfo(remidx)
-        if size(idxinfo,/type) ne 8 then return, '' ; no remote directory or index.
-        
-        ; download remote folder or index file to local directory.
-;        if file_test(locidx) eq 1 then file_delete, locidx
-        s_curl, remidx, locidx, idxinfo
+        ; check if need to download remote index.
+        flag1 = 1   ; 1 for download remote index.
+        if keyword_set(use_local_index) then flag1 = 0
+;        if file_test(locidx) eq 0 then flag1 = 1 else begin
+;            idxinfo = file_info(locidx)
+;            ; do not update locidx if it's older than 1 month.
+;            if systime(1)-idxinfo.mtime ge 2.6e6 then flag1 = 0 else flag1 = 1
+;        endelse
+        if flag1 then begin
+            idxinfo = surlinfo(remidx)
+            if size(idxinfo,/type) ne 8 then $
+                return, '' ; no remote directory or index.
+            
+            ; download remote folder or index file to local directory.
+;            if file_test(locidx) eq 1 then file_delete, locidx
+;            s_curl, remidx, locidx, idxinfo
+            scurl, remidx, locidx
+        endif
         
         ; read local index file.
         nline = file_lines(locidx)
@@ -111,7 +120,8 @@ function sgetfile, basefn, locpath0, rempath0, $
     if download eq 0 then return, locfn
         
     ; download data.
-    s_curl, remfn, locfn, reminfo
+;    s_curl, remfn, locfn, reminfo
+    scurl, remfn, locfn
     return, locfn
 end
 
