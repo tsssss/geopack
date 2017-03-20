@@ -11,7 +11,7 @@
 function sgetfile, basefn, locpath0, rempath0, $
     locidx = locidx0, remidx = remidx0, $
     check_mtime = check_mtime, check_fsize = check_fsize, $
-    force_download = force_download, use_local_index = use_local_index
+    force_download = force_download, use_local_index = use_local_index, local_only = local_only
 
     ; check local directory.
     if n_elements(locpath0) eq 0 then message, 'no local path ...'
@@ -25,6 +25,8 @@ function sgetfile, basefn, locpath0, rempath0, $
     if cnt ne 0 then locfn = (reverse(lines[idx]))[0] else flag1 = 0
     
     if flag1 eq 0 then locfn = ''
+    
+    if keyword_set(local_only) then return, locfn
     
     ; check remote directory, if no remote directory, then do not go online.
     if n_elements(rempath0) eq 0 then return, locfn
