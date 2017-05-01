@@ -48,7 +48,7 @@ function sgcalcpos, nypanel, nxpanel, ypad = ypad0, xpad = xpad0, $
     ; margins in ycharsize, mgs in [l,r,t,b].
     case n_elements(margins) of
         ; no settings.
-        0: mgs = [10,8,4,6]
+        0: mgs = [15,10,4,6]
         ; [lrtb].
         1: mgs = replicate(margins,4)
         ; [lr],[tb].
@@ -64,7 +64,7 @@ function sgcalcpos, nypanel, nxpanel, ypad = ypad0, xpad = xpad0, $
     bmg = (n_elements(bmg0) eq 0)? mgs[3]: bmg0
 
     ; convert margins and skips to normal coord.
-    lmg *= ychsz & rmg *= ychsz & tmg *= ychsz & bmg *= ychsz
+    lmg *= xchsz & rmg *= xchsz & tmg *= ychsz & bmg *= ychsz
     ypad *= ychsz & xpad *= ychsz & lpad *= ychsz
 
     if n_elements(region) eq 0 then region = [0d,0,1,1]
