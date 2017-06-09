@@ -25,7 +25,7 @@ function smkarthm, a, b, c, mode
         'x0' : return, a + dindgen(c) * b
         'x1' : return, a - reverse(dindgen(c)) * b
         'dx' : begin
-            ns = floor(b-a)/c + 1
+            ns = floor((b-a)/c) + 1
             return, a + dindgen(ns) * c
         end
         'n'  : begin
