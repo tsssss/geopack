@@ -113,9 +113,9 @@ pro sgopen, id0, xsize = xsize, ysize = ysize, cm = cm, inch = inch, $
     endelse
     
     ; prepare sgraph structure.
-    pmode = {sgid:pfn, device:devp, char:pchsz, thick:2d, area:[xsz,ysz]*px2cm}
-    zmode = {sgid:zfn, device:devz, char:zchsz, thick:1d, area:[xsz,ysz]}
-    wmode = {sgid:fix(wid), device:devw, char:zchsz, thick:1d, area:[xsz,ysz]}
+    pmode = {sgid:pfn, device:devp, char:pchsz, thick:2d*magc, area:[xsz,ysz]*px2cm}
+    zmode = {sgid:zfn, device:devz, char:zchsz, thick:1d*magc, area:[xsz,ysz]}
+    wmode = {sgid:fix(wid), device:devw, char:zchsz, thick:1d*magc, area:[xsz,ysz]}
 
 
     ; set up the sgraph structure.

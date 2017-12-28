@@ -19,13 +19,18 @@
 ;   2012-10-29, Sheng Tian, add mode keyword.
 ;-
 
-function smkarthm, a, b, c, mode
+function smkarthm, a0, b0, c0, mode
+    a = double(a0[0])   ; float causes bug in floor.
+    b = double(b0[0])
+    c = double(c0[0])
     if n_elements(mode) eq 0 then mode = 'dx'
     case mode of
         'x0' : return, a + dindgen(c) * b
         'x1' : return, a - reverse(dindgen(c)) * b
         'dx' : begin
-            ns = floor((b-a)/c) + 1
+            ns = (b-a)/c
+            if ns-floor(ns) ge 0.9 then ns = round(ns) else ns = floor(ns)
+            ns = ns+1
             return, a + dindgen(ns) * c
         end
         'n'  : begin

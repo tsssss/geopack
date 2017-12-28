@@ -79,6 +79,7 @@ function sgetfile, basefn, locpath0, rempath0, $
         endif
         
         ; read local index file.
+        if file_test(locidx) eq 0 then return, ''
         nline = file_lines(locidx)
         if nline eq 0 then return, ''
         lines = strarr(nline)

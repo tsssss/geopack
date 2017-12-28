@@ -13,12 +13,14 @@
 ;       mode. Default value is 0.
 ;   file, in, string, opt. Set the file name of color table files, then ct is
 ;       the color table id in that file.
+;   resize, in, boolean, opt. Set to resize and fill the specified region.
 ; Notes: none.
 ; Dependence: slib.
 ; History:
 ;   2016-03-22, Sheng Tian, rewrite.
 ;-
-pro sgtv, img0, position = pos0, ct = ct0, file = file, _extra = extra
+pro sgtv, img0, position = pos0, ct = ct0, file = file, resize=resize, $
+    _extra = extra
     
     ; store current color.
     common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
@@ -84,6 +86,13 @@ pro sgtv, img0, position = pos0, ct = ct0, file = file, _extra = extra
         x0 = pos1[0]+(xsz1-xsz0)/2
         y0 = pos1[1]
     endelse 
+    
+    if keyword_set(resize) then begin
+        xsz0 = xsz1
+        ysz0 = ysz1
+        x0 = pos1[0]
+        y0 = pos1[1]
+    endif
     
     img = bytarr(3,xsz0,ysz0)
     for i = 0, 2 do $

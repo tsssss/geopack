@@ -31,7 +31,7 @@ function smkgmtrc, a, b, c, mode
             for i = 0, c-2 do arr = [arr[0]*q, arr]
         end
         'dx' : begin
-            ns = alog(double(b)/a)/alog(c) & arr = a
+            ns = alog(double(b)/a)/alog(double(c)) & arr = a
             for i = 0, ns-1 do arr = [arr, arr[i]*c]
         end
         'n'  : begin
