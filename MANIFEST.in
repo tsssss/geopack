@@ -1,0 +1,2 @@
+include README.rm
+recursive-include geopack *.md *.txt
