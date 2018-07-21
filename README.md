@@ -5,17 +5,32 @@ This python `geopack` has integrated two modules originally written in Fortran: 
 
 Test results are attached in `./test_geopack1.md` to demonstrate that the Python `geopack` returns the same outputs as the Fortran and IDL counterparts. However, invisible to the user, several improvements have been implemented:
 1. The latest IGRF coefficients are used, which cover the time range from 1900 to 2020. Years beyond this range are valid inputs and the corresponding IGRF coefficients will be extrapolated.
+
 2. The IGRF coefficients in the Python `geopack` are smooth functions of the time (at milli-second accuray), whereas in the Fortran `geopack`, the coefficients are of daily resolution.
+
 3. `igrf_gsm` is changed to a wrapper of `igrf_geo` plus the proper coordinate transforms. This is an obvious place for code-reusing, but there are many similar places in `goepack` and Tsyganenko models where there are repeated codes.
+
 4. All `goto` statements in the Fortran `geopack` and Tsyganenko models are eliminated.
 
-## Installation
-The Python `geopack` is currently available at https://github.com/tsssss/geopack. Users are welcomed to download the source codes. I also plan to publish on PIP so it can be installed through command line: `$ pip install geopack`.
+   
 
-I've only tested the Python `geopack` on Mac OS in Python 3.6. Performance on other platform and other versions of Python is unclear.
+## Installation
+The package requires Python pre-installed and depends on the `numpy` and `scipy` packages. I've only tested the Python `geopack` on Mac OS in Python 3.6. Performance on other platform and other versions of Python is unclear.
+
+To install the Python `geopack` through `pip`, type `> pip3 install geopack` in the terminal.
+
+Or manually install on a Mac (and hopefully Linux):
+
+1. Download the package at https://github.com/tsssss/geopack/blob/master/dist/geopack-1.0.1.tar.gz. 
+2. Unzip it, open a terminal, and `cd` to the unzipped directory
+3. Install the package to Python by typing `> sudo python3 setup.py install` in the terminal
+
+
 
 ## Notes on `geopack_08` and `T07d`
 Strictly speaking, the Fortran `geopack` implemented here in Python is the `geopack_05`. A new version of `geopack_08` has been released, where the main change is to replace the widely used `GSM` coordinate with a newly defined `GSW` coordinate. Similarly, a new Tsyganenko `T07d` model has been released with a new algorithm. However, I decide to skip them for now. If people want the updates, please email me and let me know (tianx138@umn.edu).
+
+
 
 ## Package Interface
 The Python `geopack` follows the Python way: function parameters are all input parameters and the outputs are returned. (This is very different from the Fortran and IDL.)
@@ -184,7 +199,10 @@ The Python `geopack` follows the Python way: function parameters are all input p
 
 Functions do not appear in the above list are considered as internal functions. For usages of them, advanced users can check the source code of the Python `geopack`.
 
+
+
 ## References
+
 Hapgood, M. A. (1992). Space physics coordinate transformations: A user guide. Planetary and Space Science, 40(5), 711–717. http://doi.org/10.1016/0032-0633(92)90012-D
 
 N. A. Tsyganenko, A new data-based model of the near magnetosphere magnetic field: 1. Mathematical structure. 2. Parameterization and fitting to observations (submitted to JGR, July 2001)

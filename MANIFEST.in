@@ -1,2 +1,3 @@
-include README.rm
+include README.md
+include LICENSE
 recursive-include geopack *.md *.txt

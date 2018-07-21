@@ -10,6 +10,7 @@ setup(
     author= 'Sheng Tian',
     author_email= 'tianx138@umn.edu',
     url= 'https://github.com/tsssss/geopack',
+    download_url= 'https://github.com/tsssss/geopack/blob/master/dist/geopack-1.0.1.tar.gz',
     requires= ['numpy','scipy'],
     platforms= ['Mac OS'],
     license= 'MIT',
