@@ -18,10 +18,10 @@ setup(
     classifiers= [
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Operating System :: MacOS'
-        'Development Status :: 2 - Pre-Alpha',
+        'Operating System :: MacOS',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
-        'License :: License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Physics'
     ],
     long_description= """\
