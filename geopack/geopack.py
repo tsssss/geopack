@@ -1,5 +1,5 @@
 import numpy as np
-import t89, t96, t01, t04
+from geopack import t89,t96,t01,t04
 import os.path
 import datetime
 
@@ -14,7 +14,7 @@ def init_igrf():
     print('Load IGRF coefficients ...')
 
     bfn = 'igrf12coeffs.txt'
-    locffn = os.path.join(os.getcwd(), bfn)
+    locffn = os.path.join(os.path.dirname(__file__), bfn)
 
     nheader = 3
     with open(locffn, 'r') as file:
