@@ -21,9 +21,9 @@ To install the Python `geopack` through `pip`, type `> pip3 install geopack` in 
 
 Or manually install on a Mac (and hopefully Linux):
 
-1. Download the package at https://github.com/tsssss/geopack/blob/master/dist/geopack-1.0.1.tar.gz. 
+1. Download the latest package at https://github.com/tsssss/geopack/. 
 2. Unzip it, open a terminal, and `cd` to the unzipped directory
-3. Install the package to Python by typing `> sudo python3 setup.py install` in the terminal
+3. Install the package to Python by typing `python3 setup.py install` in the terminal
 
 
 
