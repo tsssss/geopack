@@ -341,8 +341,8 @@ def recalc(ut):
             h[mn] *= p          # now g/h are actually g^n,m, Eq (14 a-b)
 
     g10=-g[1]
-    g11= g[2]
-    h11= h[2]
+    g11=-g[2]
+    h11=-h[2]
 
     # Now calculate the components of the unit vector ezmag in geo coord.system:
     # sin(teta0)*cos(lambda0), sin(teta0)*sin(lambda0), and cos(teta0)
@@ -350,10 +350,10 @@ def recalc(ut):
     sq=g11**2+h11**2
     sqq=np.sqrt(sq)
     sqr=np.sqrt(g10**2+sq)
-    sl0=-h11/sqq
-    cl0=-g11/sqq
-    st0=sqq/sqr
-    ct0=g10/sqr
+    sl0= h11/sqq
+    cl0= g11/sqq
+    st0= sqq/sqr
+    ct0= g10/sqr
     stcl=st0*cl0
     stsl=st0*sl0
     ctsl=ct0*sl0
@@ -361,56 +361,52 @@ def recalc(ut):
 
 
     gst,slong,srasn,sdec,obliq = sun(ut)
-    # s1,s2, and s3 are the components of the unit vector exgsm=exgse in the
-    # system gei pointing from the earth's center to the sun:
-    s1=np.cos(srasn)*np.cos(sdec)
-    s2=np.sin(srasn)*np.cos(sdec)
-    s3=np.sin(sdec)
+    # xgsm_in_gei[xyz] are the components of the unit vector exgsm=exgse in GEI, pointing from the earth's center to the sun:
+    xgsm_in_geix=np.cos(srasn)*np.cos(sdec)
+    xgsm_in_geiy=np.sin(srasn)*np.cos(sdec)
+    xgsm_in_geiz=np.sin(sdec)
     cgst=np.cos(gst)
     sgst=np.sin(gst)
 
-    # dip1, dip2, and dip3 are the components of the unit vector ezsm=ezmag in the system gei:
-    dip1=stcl*cgst-stsl*sgst
-    dip2=stcl*sgst+stsl*cgst
-    dip3=ct0
+    # zsm_in_gei[xyz] are the components of the unit vector ezsm=ezmag in GEI:
+    zsm_in_geix=stcl*cgst-stsl*sgst
+    zsm_in_geiy=stcl*sgst+stsl*cgst
+    zsm_in_geiz=ct0
 
-    # Now calculate the components of the unit vector eygsm in the system gei
-    # by taking the vector product d x s and normalizing it to unit length:
-    y1=dip2*s3-dip3*s2
-    y2=dip3*s1-dip1*s3
-    y3=dip1*s2-dip2*s1
-    y=np.sqrt(y1*y1+y2*y2+y3*y3)
-    y1=y1/y
-    y2=y2/y
-    y3=y3/y
+    # eygsm = ezsm x exgsm in GEI.
+    ysm_in_geix=zsm_in_geiy*xgsm_in_geiz-zsm_in_geiz*xgsm_in_geiy
+    ysm_in_geiy=zsm_in_geiz*xgsm_in_geix-zsm_in_geix*xgsm_in_geiz
+    ysm_in_geiz=zsm_in_geix*xgsm_in_geiy-zsm_in_geiy*xgsm_in_geix
+    y=np.sqrt(ysm_in_geix*ysm_in_geix+ysm_in_geiy*ysm_in_geiy+ysm_in_geiz*ysm_in_geiz)
+    ysm_in_geix=ysm_in_geix/y
+    ysm_in_geiy=ysm_in_geiy/y
+    ysm_in_geiz=ysm_in_geiz/y
 
-    # Then in the gei system the unit vector z = ezgsm = exgsm x eygsm = s x y has the components:
-    z1=s2*y3-s3*y2
-    z2=s3*y1-s1*y3
-    z3=s1*y2-s2*y1
+    # ezgsm = exgsm x eygsm in GEI.
+    zgsm_in_geix = xgsm_in_geiy*ysm_in_geiz-xgsm_in_geiz*ysm_in_geiy
+    zgsm_in_geiy = xgsm_in_geiz*ysm_in_geix-xgsm_in_geix*ysm_in_geiz
+    zgsm_in_geiy = xgsm_in_geix*ysm_in_geiy-xgsm_in_geiy*ysm_in_geix
 
-    # The vector ezgse (here dz) in gei has the components (0,-sin(delta),
-    # cos(delta)) = (0.,-0.397823,0.917462); here delta = 23.44214 deg for
-    # The epoch 1978 (see the book by gurevich or other astronomical handbooks).
+    # ezgse in GEI has the components (0,-sin(delta),cos(delta)) = (0.,-0.397823,0.917462);
+    # Here delta = 23.44214 deg for the epoch 1978 (see the book by gurevich or other astronomical handbooks).
     # Here the most accurate time-dependent formula is used:
-    dz1=0.
-    dz2=-np.sin(obliq)
-    dz3= np.cos(obliq)
+    zgsm_in_geix=0.
+    zgsm_in_geiy=-np.sin(obliq)
+    zgsm_in_geiz= np.cos(obliq)
 
-    # then the unit vector eygse in gei system is the vector product dz x s :
-    dy1=dz2*s3-dz3*s2
-    dy2=dz3*s1-dz1*s3
-    dy3=dz1*s2-dz2*s1
+    # eygse = ezgse x exgsm in GEI:
+    ygse_in_geix=zgsm_in_geiy*xgsm_in_geiz-zgsm_in_geiz*xgsm_in_geiy
+    ygse_in_geiy=zgsm_in_geiz*xgsm_in_geix-zgsm_in_geix*xgsm_in_geiz
+    ygse_in_geiz=zgsm_in_geix*xgsm_in_geiy-zgsm_in_geiy*xgsm_in_geix
 
     # The elements of the matrix gse to gsm are the scalar products:
-    # chi=em22=(eygsm,eygse), shi=em23=(eygsm,ezgse), em32=(ezgsm,eygse)=-em23,
-    # and em33=(ezgsm,ezgse)=em22
-    chi=y1*dy1+y2*dy2+y3*dy3
-    shi=y1*dz1+y2*dz2+y3*dz3
+    # chi=em22=(eygsm,eygse), shi=em23=(eygsm,ezgse), em32=(ezgsm,eygse)=-em23, and em33=(ezgsm,ezgse)=em22
+    chi=ysm_in_geix*ygse_in_geix+ysm_in_geiy*ygse_in_geiy+ysm_in_geiz*dysm_in_geiz
+    shi=ysm_in_geix*zgsm_in_geix+ysm_in_geiy*zgsm_in_geiy+ysm_in_geiz*zgsm_in_geiz
     hi=np.arcsin(shi)
 
-    # Tilt angle: psi=arcsin(dip,exgsm)
-    sps=dip1*s1+dip2*s2+dip3*s3
+    # Tilt angle: psi=arcsin(ezsm dot exgsm)
+    sps=zsm_in_geix*xgsm_in_geix+zsm_in_geiy*xgsm_in_geiy+zsm_in_geiz*xgsm_in_geiz
     cps=np.sqrt(1.-sps**2)
     psi=np.arcsin(sps)
 
@@ -425,15 +421,15 @@ def recalc(ut):
     #     eymag:    -sl0*cos(gst)-cl0*sin(gst)
     #               -sl0*sin(gst)+cl0*cos(gst)
     #                0
-    # The components of eysm in gei were found above as y1, y2, and y3;
+    # The components of eysm in gei were found above as ysm_in_geix, ysm_in_geiy, and ysm_in_geiz;
     # Now we only have to combine the quantities into scalar products:
-    exmagx=ct0*(cl0*cgst-sl0*sgst)
-    exmagy=ct0*(cl0*sgst+sl0*cgst)
-    exmagz=-st0
-    eymagx=-(sl0*cgst+cl0*sgst)
-    eymagy=-(sl0*sgst-cl0*cgst)
-    cfi=y1*eymagx+y2*eymagy
-    sfi=y1*exmagx+y2*exmagy+y3*exmagz
+    xmag_in_geix=ct0*(cl0*cgst-sl0*sgst)
+    xmag_in_geiy=ct0*(cl0*sgst+sl0*cgst)
+    xmag_in_geiz=-st0
+    ymag_in_geix=-(sl0*cgst+cl0*sgst)
+    ymag_in_geiy=-(sl0*sgst-cl0*cgst)
+    cfi=ysm_in_geix*ymag_in_geix+ysm_in_geiy*ymag_in_geiy
+    sfi=ysm_in_geix*xmag_in_geix+ysm_in_geiy*xmag_in_geiy+ysm_in_geiz*xmag_in_geiz
 
     xmut=(np.arctan2(sfi,cfi)+3.1415926536)*3.8197186342
 
@@ -444,17 +440,17 @@ def recalc(ut):
 
     # All the unit vectors in brackets are already defined in gei:
     # exgeo=(cgst,sgst,0), eygeo=(-sgst,cgst,0), ezgeo=(0,0,1)
-    # exgsm=(s1,s2,s3),  eygsm=(y1,y2,y3),   ezgsm=(z1,z2,z3)
+    # exgsm=(xgsm_in_geix,xgsm_in_geiy,xgsm_in_geiz),  eygsm=(ysm_in_geix,ysm_in_geiy,ysm_in_geiz),   ezgsm=(zgsm_in_geix,zgsm_in_geiy,zgsm_in_geiz)
     # and therefore:
-    a11=s1*cgst+s2*sgst
-    a12=-s1*sgst+s2*cgst
-    a13=s3
-    a21=y1*cgst+y2*sgst
-    a22=-y1*sgst+y2*cgst
-    a23=y3
-    a31=z1*cgst+z2*sgst
-    a32=-z1*sgst+z2*cgst
-    a33=z3
+    a11= xgsm_in_geix*cgst+xgsm_in_geiy*sgst
+    a12=-xgsm_in_geix*sgst+xgsm_in_geiy*cgst
+    a13= xgsm_in_geiz
+    a21= ysm_in_geix *cgst+ysm_in_geiy *sgst
+    a22=-ysm_in_geix *sgst+ysm_in_geiy *cgst
+    a23= ysm_in_geiz
+    a31= zgsm_in_geix*cgst+zgsm_in_geiy*sgst
+    a32=-zgsm_in_geix*sgst+zgsm_in_geiy*cgst
+    a33= zgsm_in_geiz
 
     return psi
 
@@ -1212,3 +1208,4 @@ def t96_mgnp(xn_pd,vel,xgsm,ygsm,zgsm):
 
 
 init_igrf()
+

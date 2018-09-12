@@ -32,8 +32,37 @@ Strictly speaking, the Fortran `geopack` implemented here in Python is the `geop
 
 
 
+## Usage
+
+Here is a short example on how to import the package and call functions. A detailed explanation of all functions is listed in the next section.
+
+```python
+from geopack import geopack, t89
+
+ut = 100
+xgsm,ygsm,zgsm = [1,2,3]
+ps = geopack.recalc(ut)
+b0xgsm,b0ygsm,b0zgsm = geopack.dip(xgsm,ygsm,zgsm)
+dbxgsm,dbygsm,dbzgsm = t89.t89(2, ps, xgsm,ygsm,zgsm)
+bxgsm,bygsm,bzgsm = [b0xgsm+dbxgsm,b0ygsm+dbygsm,b0zgsm+dbzgsm]
+print(bxgsm,bygsm,bzgsm)
+-539.5083883330017 -569.5906371610358 -338.8680547453352
+```
+
+And here is another way to import the package and refer to the functions.
+
+```python
+import geopack
+
+ps = geopack.geopack.recalc(ut)
+b0xgsm,b0ygsm,b0zgsm = geopack.geopack.dip(xgsm,ygsm,zgsm)
+dbxgsm,dbygsm,dbzgsm = geopack.t89.t89(2, ps, xgsm,ygsm,zgsm)
+```
+
+
+
 ## Package Interface
-The Python `geopack` follows the Python way: function parameters are all input parameters and the outputs are returned. (This is very different from the Fortran and IDL.)
+The Python `geopack` follows the Python way: function parameters are all input parameters and the outputs are returned. (This is very different from the Fortran and IDL `geopack`.)
 
 * When changing to a new time of interest
 
@@ -49,8 +78,6 @@ The Python `geopack` follows the Python way: function parameters are all input p
     Return
     ps: Dipole tilt angle in radian.
     ```
-
-    
 
 * Get the internal model magnetic fields
 
@@ -208,8 +235,3 @@ Hapgood, M. A. (1992). Space physics coordinate transformations: A user guide. P
 N. A. Tsyganenko, A new data-based model of the near magnetosphere magnetic field: 1. Mathematical structure. 2. Parameterization and fitting to observations (submitted to JGR, July 2001)
 
 N. A. Tsyganenko and M. I. Sitnov, Modeling the dynamics of the inner magnetosphere during strong geomagnetic storms, J. Geophys. Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798, 2005.
-
-
-
-
-
