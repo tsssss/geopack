@@ -28,7 +28,7 @@ Or manually install on a Mac (and hopefully Linux):
 
 
 ## Notes on `geopack_08` and `T07d`
-Strictly speaking, the Fortran `geopack` implemented here in Python is the `geopack_05`. A new version of `geopack_08` has been released, where the main change is to replace the widely used `GSM` coordinate with a newly defined `GSW` coordinate. Similarly, a new Tsyganenko `T07d` model has been released with a new algorithm. However, I decide to skip them for now. If people want the updates, please email me and let me know (tianx138@umn.edu).
+Strictly speaking, the Fortran `geopack` implemented here in Python is the `geopack_05`. A new version of `geopack_08` has been released, where the main change is to replace the widely used `GSM` coordinate with a newly defined `GSW` coordinate. Similarly, a new Tsyganenko `T07d` model has been released with a new algorithm. Support of geopack_08 and T07d are under development.
 
 
 
@@ -235,3 +235,12 @@ Hapgood, M. A. (1992). Space physics coordinate transformations: A user guide. P
 N. A. Tsyganenko, A new data-based model of the near magnetosphere magnetic field: 1. Mathematical structure. 2. Parameterization and fitting to observations (submitted to JGR, July 2001)
 
 N. A. Tsyganenko and M. I. Sitnov, Modeling the dynamics of the inner magnetosphere during strong geomagnetic storms, J. Geophys. Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798, 2005.
+=======
+# slib
+Sheng Tian's IDL library.
+
+The library includes
+1, ./sgraph. Generate same output on computer screen, in pdf and in png.
+2, ./cdf. A sub-library on CDF I/O.
+3, ./sread. A sub-library that loads data from various spacecraft missions. (To be added.)
+4, etc.
