@@ -1,22 +1,22 @@
-# python geopack  setup.py
+# python geopack08  setup.py
 import setuptools
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='geopack',
+    name='geopack08',
     version='1.0.2',
     author='Sheng Tian',
     author_email='tianx138@umn.edu',
-    description='Python version of geopack and Tsyganenko models',
+    description='Python version of geopack08 and Tsyganenko models',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url= 'https://github.com/tsssss/geopack',
+    url= 'https://github.com/tsssss/geopack08',
     requires= ['numpy','scipy'],
     platforms= ['Mac OS'],
     license= 'MIT',
-    keywords= ['geopack','space physics','Tsyganenko model'],
+    keywords= ['geopack08','space physics','Tsyganenko model'],
     packages= setuptools.find_packages(),
     classifiers= [
         'Programming Language :: Python :: 3',

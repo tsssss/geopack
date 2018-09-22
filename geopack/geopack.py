@@ -1,12 +1,12 @@
 import numpy as np
-from geopack import t89,t96,t01,t04
+from geopack08 import t89,t96,t01,t04
 import os.path
 import datetime
 
 def init_igrf():
     """
     Initialize the IGRF coefficients and related coefs.
-    Should be called once and only once when importing the geopack module.
+    Should be called once and only once when importing the geopack08 module.
     """
 
     global igrf, nmn,mns, nyear,years,yruts
@@ -90,6 +90,24 @@ def load_igrf(ut):
     return g0*f0+g1*f1, h0*f0+h1*f1
 
 
+def igrf_gsw(xgsw,ygsw,zgsw):
+    """
+    Calculates components of the main (internal) geomagnetic field in the geocentric solar
+    magnetospheric coordinate system, using IAGA international geomagnetic reference model
+    coefficients (e.g., http://www.ngdc.noaa.gov/iaga/vmod/igrf.html revised: 22 march, 2005)
+
+    Before the first call of this subroutine, or if the date/time
+    was changed, the model coefficients and GEO-GSW rotation matrix elements should be updated
+    by calling the subroutine recalc
+
+    Python version by Sheng Tian
+
+    :param xgsw,ygsw,zgsw: cartesian GSW coordinates (in units Re=6371.2 km)
+    :return: hxgsw,hygsw,hzgsw. Cartesian GSW components of the main geomagnetic field in nanotesla
+    """
+    xgsm,ygsm,zgsm = gswgsm(xgsw,ygsw,zgsw, 1)
+    bxgsm,bygsm,bzgsm = igrf_gsm(xgsm,ygsm,zgsm)
+    return gswgsm(bxgsm,bygsm,bzgsm, -1)
 
 
 def igrf_gsm(xgsm,ygsm,zgsm):
@@ -225,6 +243,8 @@ def igrf_geo(r,theta,phi):
     return br,bt,bf
 
 
+
+
 def dip(xgsm,ygsm,zgsm):
     """
     Calculates gsm components of a geodipole field with the dipole moment
@@ -257,8 +277,23 @@ def dip(xgsm,ygsm,zgsm):
     return bxgsm,bygsm,bzgsm
 
 
+def dip_gsw(xgsw,ygsw,zgsw):
+    """
+    Calculates gsm components of a geodipole field with the dipole moment
+    corresponding to the epoch, specified by calling subroutine recalc (should be
+    invoked before the first use of this one and in case the date/time was changed).
 
-def recalc(ut):
+    :param xgsw,ygsw,zgsw: GSW coordinates in Re (1 Re = 6371.2 km)
+    :return: bxgsm,bygsm,gzgsm. Field components in gsm system, in nanotesla.
+
+    Author: Sheng Tian
+    """
+    xgsm,ygsm,zgsm = gswgsm(xgsw,ygsw,zgsw, 1)
+    bxgsm,bygsm,bzgsm = dip(xgsm,ygsm,zgsm)
+    return gswgsm(bxgsm,bygsm,bzgsm, -1)
+
+
+def recalc(ut, vxgse=-400,vygse=0,vzgse=0):
     """
     1. Prepares elements of rotation matrices for transformations of vectors between
         several coordinate systems, most frequently used in space physics.
@@ -269,6 +304,7 @@ def recalc(ut):
     There is no need to repeatedly invoke recalc, if multiple calculations are made for the same date and time.
 
     :param ut: Universal time in second.
+    :param v[xyz]gse: The solar wind velocity expressed in GSE.
     :return: psi. Dipole tilt angle in radian.
 
     Python version by Sheng Tian
@@ -291,7 +327,9 @@ def recalc(ut):
     # ds3.
     # ba(6).
     global st0,ct0,sl0,cl0,ctcl,stcl,ctsl,stsl,sfi,cfi,sps,cps, \
-        shi,chi,hi,psi,xmut,a11,a21,a31,a12,a22,a32,a13,a23,a33,ds3,cgst,sgst,ba
+        shi,chi,hi,psi,xmut,ds3,cgst,sgst,ba, \
+        a11,a21,a31,a12,a22,a32,a13,a23,a33, \
+        e11,e21,e31,e12,e22,e32,e13,e23,e33
 
     # The common block /geopack2/ contains coefficients of the IGRF field model, calculated
     # for a given year and day from their standard epoch values. the array rec contains
@@ -361,52 +399,95 @@ def recalc(ut):
 
 
     gst,slong,srasn,sdec,obliq = sun(ut)
-    # xgsm_in_gei[xyz] are the components of the unit vector exgsm=exgse in GEI, pointing from the earth's center to the sun:
-    xgsm_in_geix=np.cos(srasn)*np.cos(sdec)
-    xgsm_in_geiy=np.sin(srasn)*np.cos(sdec)
-    xgsm_in_geiz=np.sin(sdec)
-    cgst=np.cos(gst)
-    sgst=np.sin(gst)
 
-    # zsm_in_gei[xyz] are the components of the unit vector ezsm=ezmag in GEI:
-    zsm_in_geix=stcl*cgst-stsl*sgst
-    zsm_in_geiy=stcl*sgst+stsl*cgst
-    zsm_in_geiz=ct0
+    # All vectors are expressed in GEI.
 
-    # eygsm = ezsm x exgsm in GEI.
-    ysm_in_geix=zsm_in_geiy*xgsm_in_geiz-zsm_in_geiz*xgsm_in_geiy
-    ysm_in_geiy=zsm_in_geiz*xgsm_in_geix-zsm_in_geix*xgsm_in_geiz
-    ysm_in_geiz=zsm_in_geix*xgsm_in_geiy-zsm_in_geiy*xgsm_in_geix
-    y=np.sqrt(ysm_in_geix*ysm_in_geix+ysm_in_geiy*ysm_in_geiy+ysm_in_geiz*ysm_in_geiz)
-    ysm_in_geix=ysm_in_geix/y
-    ysm_in_geiy=ysm_in_geiy/y
-    ysm_in_geiz=ysm_in_geiz/y
+    # xgse_[xyz] (s[123]) are the components of the unit vector exgsm=exgse in GEI,
+    # pointing from the earth's center to the sun:
+    xgse_x=np.cos(srasn)*np.cos(sdec)
+    xgse_y=np.sin(srasn)*np.cos(sdec)
+    xgse_z=np.sin(sdec)
 
-    # ezgsm = exgsm x eygsm in GEI.
-    zgsm_in_geix = xgsm_in_geiy*ysm_in_geiz-xgsm_in_geiz*ysm_in_geiy
-    zgsm_in_geiy = xgsm_in_geiz*ysm_in_geix-xgsm_in_geix*ysm_in_geiz
-    zgsm_in_geiy = xgsm_in_geix*ysm_in_geiy-xgsm_in_geiy*ysm_in_geix
-
-    # ezgse in GEI has the components (0,-sin(delta),cos(delta)) = (0.,-0.397823,0.917462);
+    # zgse_[xyz] (dz[123]) in GEI has the components (0,-sin(delta),cos(delta)) = (0.,-0.397823,0.917462);
     # Here delta = 23.44214 deg for the epoch 1978 (see the book by gurevich or other astronomical handbooks).
     # Here the most accurate time-dependent formula is used:
-    zgsm_in_geix=0.
-    zgsm_in_geiy=-np.sin(obliq)
-    zgsm_in_geiz= np.cos(obliq)
+    zgse_x=0.
+    zgse_y=-np.sin(obliq)
+    zgse_z= np.cos(obliq)
 
-    # eygse = ezgse x exgsm in GEI:
-    ygse_in_geix=zgsm_in_geiy*xgsm_in_geiz-zgsm_in_geiz*xgsm_in_geiy
-    ygse_in_geiy=zgsm_in_geiz*xgsm_in_geix-zgsm_in_geix*xgsm_in_geiz
-    ygse_in_geiz=zgsm_in_geix*xgsm_in_geiy-zgsm_in_geiy*xgsm_in_geix
+    # ygse_[xyz] (dy[123]) = zgse_[xyz] x xgsm_[xyz] in GEI:
+    ygse_x=zgse_y*xgse_z-zgse_z*xgse_y
+    ygse_y=zgse_z*xgse_x-zgse_x*xgse_z
+    ygse_z=zgse_x*xgse_y-zgse_y*xgse_x
+
+    # zsm_[xyz] (dip[123]) are the components of the unit vector zsm=zmag in GEI:
+    cgst=np.cos(gst)
+    sgst=np.sin(gst)
+    zsm_x=stcl*cgst-stsl*sgst
+    zsm_y=stcl*sgst+stsl*cgst
+    zsm_z=ct0
+
+    # xgsw_[xyz] (x[123]) in GEI.
+    v1 = -1/np.sqrt(vxgse*vxgse+vygse*vygse+vzgse*vzgse)
+    xgsw_x = (vxgse*xgse_x + vygse*ygse_x + vzgse*zgse_x)*v1
+    xgsw_y = (vxgse*xgse_y + vygse*ygse_y + vzgse*zgse_y)*v1
+    xgsw_z = (vxgse*xgse_z + vygse*ygse_z + vzgse*zgse_z)*v1
+
+    # ygsw (y[123]) = zsm x xgsw in GEI.
+    ygsw_x=zsm_y*xgsw_z-zsm_z*xgsw_y
+    ygsw_y=zsm_z*xgsw_x-zsm_x*xgsw_z
+    ygsw_z=zsm_x*xgsw_y-zsm_y*xgsw_x
+    y=np.sqrt(ygsw_x*ygsw_x+ygsw_y*ygsw_y+ygsw_z*ygsw_z)
+    ygsw_x=ygsw_x/y
+    ygsw_y=ygsw_y/y
+    ygsw_z=ygsw_z/y
+
+    # zgsw (z[123]) = xgsw x ygsw in GEI.
+    zgsw_x = xgsw_y*ygsw_z-xgsw_z*ygsw_y
+    zgsw_y = xgsw_z*ygsw_x-xgsw_x*ygsw_z
+    zgsw_z = xgsw_x*ygsw_y-xgsw_y*ygsw_x
+
+
+    # xgsm = xgse in GEI.
+    xgsm_x,xgsm_y,xgsm_z = xgse_x,xgse_y,xgse_z
+
+    # ygsm = zsm x xgsm in GEI.
+    ygsm_x = zsm_y*xgsm_z - zsm_z*xgsm_y
+    ygsm_y = zsm_z*xgsm_x - zsm_x*xgsm_z
+    ygsm_z = zsm_x*xgsm_y - zsm_y*xgsm_x
+    y=np.sqrt(ygsm_x*ygsm_x+ygsm_y*ygsm_y+ygsm_z*ygsm_z)
+    ygsm_x = ygsm_x/y
+    ygsm_y = ygsm_y/y
+    ygsm_z = ygsm_z/y
+
+    # ezgsm = exgsm x eygsm in GEI.
+    zgsm_x = xgse_y*ygsm_z-xgse_z*ygsm_y
+    zgsm_y = xgse_z*ygsm_x-xgse_x*ygsm_z
+    zgsm_z = xgse_x*ygsm_y-xgse_y*ygsm_x
 
     # The elements of the matrix gse to gsm are the scalar products:
     # chi=em22=(eygsm,eygse), shi=em23=(eygsm,ezgse), em32=(ezgsm,eygse)=-em23, and em33=(ezgsm,ezgse)=em22
-    chi=ysm_in_geix*ygse_in_geix+ysm_in_geiy*ygse_in_geiy+ysm_in_geiz*dysm_in_geiz
-    shi=ysm_in_geix*zgsm_in_geix+ysm_in_geiy*zgsm_in_geiy+ysm_in_geiz*zgsm_in_geiz
-    hi=np.arcsin(shi)
+    chi = ygsm_x*ygse_x + ygsm_y*ygse_y + ygsm_z*ygse_z
+    shi = ygsm_x*zgse_x + ygsm_y*zgse_y + ygsm_z*zgse_z
+    hi = np.arcsin(shi)
+
+    # elements of the matrix gsm to gsw are the scalar products:
+    # e11 = (exgsm, exgsw) e12 = (exgsm, eygsw) e13 = (exgsm, ezgsw)
+    # e21 = (eygsm, exgsw) e22 = (eygsm, eygsw) e23 = (eygsm, ezgsw)
+    # e31 = (ezgsm, exgsw) e32 = (ezgsm, eygsw) e33 = (ezgsm, ezgsw)
+    e11 = xgsm_x*xgsw_x + xgsm_y*xgsw_y + xgsm_z*xgsw_z
+    e12 = xgsm_x*ygsw_x + xgsm_y*ygsw_y + xgsm_z*ygsw_z
+    e13 = xgsm_x*zgsw_x + xgsm_y*zgsw_y + xgsm_z*zgsw_z
+    e21 = ygsm_x*xgsw_x + ygsm_y*xgsw_y + ygsm_z*xgsw_z
+    e22 = ygsm_x*ygsw_x + ygsm_y*ygsw_y + ygsm_z*ygsw_z
+    e23 = ygsm_x*zgsw_x + ygsm_y*zgsw_y + ygsm_z*zgsw_z
+    e31 = zgsm_x*xgsw_x + zgsm_y*xgsw_y + zgsm_z*xgsw_z
+    e32 = zgsm_x*ygsw_x + zgsm_y*ygsw_y + zgsm_z*ygsw_z
+    e33 = zgsm_x*zgsw_x + zgsm_y*zgsw_y + zgsm_z*zgsw_z
+
 
     # Tilt angle: psi=arcsin(ezsm dot exgsm)
-    sps=zsm_in_geix*xgsm_in_geix+zsm_in_geiy*xgsm_in_geiy+zsm_in_geiz*xgsm_in_geiz
+    sps=zsm_x*xgse_x+zsm_y*xgse_y+zsm_z*xgse_z
     cps=np.sqrt(1.-sps**2)
     psi=np.arcsin(sps)
 
@@ -423,13 +504,13 @@ def recalc(ut):
     #                0
     # The components of eysm in gei were found above as ysm_in_geix, ysm_in_geiy, and ysm_in_geiz;
     # Now we only have to combine the quantities into scalar products:
-    xmag_in_geix=ct0*(cl0*cgst-sl0*sgst)
-    xmag_in_geiy=ct0*(cl0*sgst+sl0*cgst)
-    xmag_in_geiz=-st0
-    ymag_in_geix=-(sl0*cgst+cl0*sgst)
-    ymag_in_geiy=-(sl0*sgst-cl0*cgst)
-    cfi=ysm_in_geix*ymag_in_geix+ysm_in_geiy*ymag_in_geiy
-    sfi=ysm_in_geix*xmag_in_geix+ysm_in_geiy*xmag_in_geiy+ysm_in_geiz*xmag_in_geiz
+    xmag_x= ct0*(cl0*cgst-sl0*sgst)
+    xmag_y= ct0*(cl0*sgst+sl0*cgst)
+    xmag_z=-st0
+    ymag_x=-(sl0*cgst+cl0*sgst)
+    ymag_y=-(sl0*sgst-cl0*cgst)
+    cfi=ygsm_x*ymag_x+ygsm_y*ymag_y
+    sfi=ygsm_x*xmag_x+ygsm_y*xmag_y+ygsm_z*xmag_z
 
     xmut=(np.arctan2(sfi,cfi)+3.1415926536)*3.8197186342
 
@@ -437,20 +518,18 @@ def recalc(ut):
     # a11=(exgeo,exgsm), a12=(eygeo,exgsm), a13=(ezgeo,exgsm),
     # a21=(exgeo,eygsm), a22=(eygeo,eygsm), a23=(ezgeo,eygsm),
     # a31=(exgeo,ezgsm), a32=(eygeo,ezgsm), a33=(ezgeo,ezgsm),
-
     # All the unit vectors in brackets are already defined in gei:
-    # exgeo=(cgst,sgst,0), eygeo=(-sgst,cgst,0), ezgeo=(0,0,1)
-    # exgsm=(xgsm_in_geix,xgsm_in_geiy,xgsm_in_geiz),  eygsm=(ysm_in_geix,ysm_in_geiy,ysm_in_geiz),   ezgsm=(zgsm_in_geix,zgsm_in_geiy,zgsm_in_geiz)
+    # xgeo=(cgst,sgst,0), ygeo=(-sgst,cgst,0), zgeo=(0,0,1)
     # and therefore:
-    a11= xgsm_in_geix*cgst+xgsm_in_geiy*sgst
-    a12=-xgsm_in_geix*sgst+xgsm_in_geiy*cgst
-    a13= xgsm_in_geiz
-    a21= ysm_in_geix *cgst+ysm_in_geiy *sgst
-    a22=-ysm_in_geix *sgst+ysm_in_geiy *cgst
-    a23= ysm_in_geiz
-    a31= zgsm_in_geix*cgst+zgsm_in_geiy*sgst
-    a32=-zgsm_in_geix*sgst+zgsm_in_geiy*cgst
-    a33= zgsm_in_geiz
+    a11= xgsm_x*cgst+xgse_y*sgst
+    a12=-xgsm_x*sgst+xgse_y*cgst
+    a13= xgsm_z
+    a21= ygsm_x *cgst+ygsm_y *sgst
+    a22=-ygsm_x *sgst+ygsm_y *cgst
+    a23= ygsm_z
+    a31= zgsm_x*cgst+zgsm_y*sgst
+    a32=-zgsm_x*sgst+zgsm_y*cgst
+    a33= zgsm_z
 
     return psi
 
@@ -472,8 +551,8 @@ def sun(ut):
     jd2000 = 2451545.0
     # convert to Julian date.
     t0_jd = 2440587.5       # in day, 0 of Julian day.
-    secofday1 = 1./86400    # 1/sec of day.
-    t_jd = ut*secofday1+t0_jd
+    secofdaygsw_x = 1./86400    # 1/sec of day.
+    t_jd = ut*secofdaygsw_x+t0_jd
 
     # d = mjd - mj2000.
     d = t_jd-jd2000
@@ -534,10 +613,36 @@ def sun(ut):
     return gmst,l,srasn,sdec,e
 
 
+def gswgsm(p1,p2,p3, j):
+    """
+    Converts gsm to gsw coordinates or vice versa.
+                       j>0                       j<0
+    input:  j,xgsm,ygsm,zgsm           j,xgsw,ygsw,zgsw
+    output:    xgsw,ygsw,zgsw           xgsm,ygsm,zgsm
+
+    :param p1,p2,p3: input position
+    :param j: flag
+    :return: output position
+    """
+    global e11, e21, e31, e12, e22, e32, e13, e23, e33
+
+    if j > 0:
+        xgsw,ygsw,zgsw = [p1,p2,p3]
+        xgsm = xgsw*e11 + ygsw*e12 + zgsw*e13
+        ygsm = xgsw*e21 + ygsw*e22 + zgsw*e23
+        zgsm = xgsw*e31 + ygsw*e32 + zgsw*e33
+        return xgsm,ygsm,zgsm
+    else:
+        xgsm,ygsm,zgsm = [p1,p2,p3]
+        xgsw = xgsm*e11 + ygsm*e21 + zgsm*e31
+        ygsw = xgsm*e12 + ygsm*e22 + zgsm*e32
+        zgsw = xgsm*e13 + ygsm*e23 + zgsm*e33
+        return xgsw,ygsw,zgsw
+
 
 def geomag(p1,p2,p3, j):
     """
-    Converts geographic (geo) to dipole (mag) coordinates or vica versa.
+    Converts geographic (geo) to dipole (mag) coordinates or vice versa.
                    j>0                       j<0
     input:  j,xgeo,ygeo,zgeo           j,xmag,ymag,zmag
     output:    xmag,ymag,zmag           xgeo,ygeo,zgeo
@@ -569,7 +674,7 @@ def geomag(p1,p2,p3, j):
 
 def geigeo(p1,p2,p3, j):
     """
-    Converts equatorial inertial (gei) to geographical (geo) coords or vica versa.
+    Converts equatorial inertial (gei) to geographical (geo) coords or vice versa.
                    j>0                       j<0
     input:  j,xgei,ygei,zgei           j,xgeo,ygeo,zgeo
     output:    xgeo,ygeo,zgeo           xgei,ygei,zgei
@@ -601,7 +706,7 @@ def geigeo(p1,p2,p3, j):
 
 def magsm(p1,p2,p3, j):
     """
-    Converts dipole (mag) to solar magnetic (sm) coordinates or vica versa
+    Converts dipole (mag) to solar magnetic (sm) coordinates or vice versa
                    j>0                       j<0
     input:  j,xmag,ymag,zmag           j,xsm, ysm, zsm
     output:    xsm, ysm, zsm           xmag,ymag,zmag
@@ -633,7 +738,7 @@ def magsm(p1,p2,p3, j):
 
 def gsmgse(p1,p2,p3, j):
     """
-    converts geocentric solar magnetospheric (gsm) coords to solar ecliptic (gse) ones or vica versa.
+    converts geocentric solar magnetospheric (gsm) coords to solar ecliptic (gse) ones or vice versa.
                    j>0                       j<0
     input:  j,xgsm,ygsm,zgsm           j,xgse,ygse,zgse
     output:    xgse,ygse,zgse           xgsm,ygsm,zgsm
@@ -661,7 +766,7 @@ def gsmgse(p1,p2,p3, j):
 
 def smgsm(p1,p2,p3, j):
     """
-    Converts solar magnetic (sm) to geocentric solar magnetospheric (gsm) coordinates or vica versa.
+    Converts solar magnetic (sm) to geocentric solar magnetospheric (gsm) coordinates or vice versa.
                    j>0                       j<0
     input:  j,xsm, ysm, zsm           j,xgsm,ygsm,zgsm
     output:    xgsm,ygsm,zgsm           xsm, ysm, zsm
@@ -693,7 +798,7 @@ def smgsm(p1,p2,p3, j):
 
 def geogsm(p1,p2,p3, j):
     """
-    Converts geographic (geo) to geocentric solar magnetospheric (gsm) coordinates or vica versa.
+    Converts geographic (geo) to geocentric solar magnetospheric (gsm) coordinates or vice versa.
                    j>0                       j<0
     input:  j,xgeo,ygeo,zgeo           j,xgsm,ygsm,zgsm
     output:    xgsm,ygsm,zgsm           xgeo,ygeo,zgeo
@@ -724,10 +829,74 @@ def geogsm(p1,p2,p3, j):
         return xgeo,ygeo,zgeo
 
 
+def geodgeo(p1,p2, j):
+    """
+    This subroutine (1) converts vertical local height (altitude) h and geodetic
+    latitude xmu into geocentric coordinates r and theta (geocentric radial
+    distance and colatitude, respectively; also known as ecef coordinates),
+    as well as (2) performs the inverse transformation from {r,theta} to {h,xmu}.
+
+    The subroutine uses world geodetic system wgs84 parameters for the earth's
+    ellipsoid. the angular quantities (geo colatitude theta and geodetic latitude
+    xmu) are in radians, and the distances (geocentric radius r and altitude h
+    above the earth's ellipsoid) are in kilometers.
+
+    if j>0, the transformation is made from geodetic to geocentric coordinates using simple direct equations.
+    if j<0, the inverse transformation from geocentric to geodetic coordinates is made by means of a fast iterative algorithm.
+
+                  j>0            j<0
+    input:    j, h,xmu        j, r,theta
+    output:  j, r,theta        j, h,xmu
+
+    Author:  N.A. Tsyganenko
+    Date: Dec 5, 2007
+
+    :param h: Altitude in km.
+    :param xmu: Geodetic latitude in radian.
+    :param r: Geocentric distance in km.
+    :param theta: Spherical co-latitude in radian.
+    """
+
+    # r_eq is the semi-major axis of the earth's ellipsoid,
+    # and beta is its second eccentricity squared
+    r_eq, beta = 6378.137, 6.73949674228e-3
+
+    if j>0:     # Direct transformation(GEOD->GEO):
+        h,xmu = [p1,p2]
+        cosxmu = np.cos(xmu)
+        sinxmu = np.sin(xmu)
+        den = np.sqrt(cosxmu**2+(sinxmu/(1+beta))**2)
+        coslam = cosxmu/den
+        sinlam = sinxmu/(den*(1+beta))
+        rs = r_eq/np.sqrt(1+beta*sinlam**2)
+        x = rs*coslam+h*cosxmu
+        z = rs*sinlam+h*sinxmu
+        r = np.sqrt(x**2+z**2)
+        theta = np.arccos(z/r)
+        return r,theta
+    else:       # Inverse transformation(GEO->GEOD):
+        r,theta = [p1,p2]
+        phi = np.pi*0.5-theta
+        phi1,dphi,h,xmu,tol = phi,0,0,0,1e-6
+        for n in range(100):
+            if np.abs(dphi) > tol: break
+            sp = np.sin(phi1)
+            arg = sp*(1+beta)/np.sqrt(1+beta*(2+beta)*sp**2)
+            xmu = np.arcsin(arg)
+            rs = r_eq/np.sqrt(1+beta*np.sin(phi1)**2)
+            cosfims = np.cos(phi1-xmu)
+            h = np.sqrt((rs*cosfims)**2+r**2-rs**2)-rs*cosfims
+            z = rs*np.sin(phi1)+h*np.sin(xmu)
+            x = rs*np.cos(phi1)+h*np.cos(xmu)
+            rr = np.sqrt(x**2+z**2)
+            dphi = np.arcsin(z/rr)-phi
+            phi1 -= dphi
+        return h,xmu
+
 
 def sphcar(p1,p2,p3, j):
     """
-    Converts spherical coords into cartesian ones and vica versa (theta and phi in radians).
+    Converts spherical coords into cartesian ones and vice versa (theta and phi in radians).
                   j>0            j<0
     input:   j,r,theta,phi     j,x,y,z
     output:      x,y,z        r,theta,phi

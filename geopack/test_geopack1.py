@@ -1,10 +1,10 @@
 import unittest
 import datetime
-import geopack,t89,t96,t01,t04
+from geopack08 import geopack,t89,t96,t01,t04
 import collections
 
 
-def approx_eq(x,y, tolerance=1e-9):
+def approx_eq(x,y, tolerance=1e-5):
     if isinstance(x, collections.Iterable):
         err = [abs(x0-y0) < tolerance for x0,y0 in zip(x,y)]
         return not (False in err)
@@ -18,6 +18,8 @@ class KnownValues(unittest.TestCase):
         'ut': (datetime.datetime(2001,1,1,2,3,4)-datetime.datetime(1970,1,1)).total_seconds(),
         'r_theta_phi': (1.1,0.1,0.2),
         'r_gsm': [-5.1,0.3,2.8],
+        'v_gse': [-400,0,10],
+        'r_gsw': [-5.1650466,0.31912656,2.6759018],
         'r_gse': (-5.1, 0.9056171572514691, 2.6664316163164146),
         'r_geo': (2.8011944117533565,-2.4048913761357267,4.5066403602406275),
         'r_sm': (-2.9670092644479498,0.3,5.004683409035982),
@@ -26,7 +28,9 @@ class KnownValues(unittest.TestCase):
         'recalc': -0.53356312486214,
         'sun': (2.296253490174557,4.899558241818756,4.915948604659666,-0.40152585209539443,0.4090854263337441),
         'igrf': (262.8292494578462,-19.305779063359893,-50.34573331501855),
+        'igrf_gsw': (263.86956,-20.599686,-43.992093),
         'dip': (266.04028284777775,-20.204186166677108,-57.492114467356956),
+        'dip_gsw': (267.24898,-21.492340,-51.061152),
         't89': (20.77213175686351,-0.6465547428023687,-15.071641970338984),
         't96': (61.178346985193215,-1.4611972499959456,-40.44976904223083),
         't01': (46.35361850144623,1.4399149705997756,-31.998997670712665),
@@ -48,10 +52,10 @@ class KnownValues(unittest.TestCase):
     test['mgnp_shu_par'] = test['mgnp_t96_par']+ [test['bzimf']]
 
     def test_to_known_values(self):
-        """geopack should give known result with known input"""
+        """geopack08 should give known result with known input"""
 
         # test recalc, which returns dipole tilt angle in rad.
-        self.assertEqual(self.test['recalc'], geopack.recalc(self.test['ut']))
+        self.assertEqual(self.test['recalc'], geopack.recalc(self.test['ut'],*self.test['v_gse']))
 
         # test sun, which returns 5 angles in rad.
         self.assertEqual(self.test['sun'], geopack.sun(self.test['ut']))
@@ -59,6 +63,8 @@ class KnownValues(unittest.TestCase):
         # test internal models.
         self.assertTrue(approx_eq(self.test['igrf'], geopack.igrf_gsm(*self.test['r_gsm'])))
         self.assertTrue(approx_eq(self.test['dip'], geopack.dip(*self.test['r_gsm'])))
+        self.assertTrue(approx_eq(self.test['igrf_gsw'], geopack.igrf_gsw(*self.test['r_gsw']), 1e-3))
+        self.assertTrue(approx_eq(self.test['dip_gsw'], geopack.dip_gsw(*self.test['r_gsw']), 1e-3))
 
         # test external models.
         self.assertTrue(approx_eq(self.test['t89'], t89.t89(*self.test['par1'])))
@@ -84,6 +90,9 @@ class KnownValues(unittest.TestCase):
 
         self.assertTrue(approx_eq(self.test['r_gsm'], geopack.geogsm(*self.test['r_geo'], 1)))
         self.assertTrue(approx_eq(self.test['r_geo'], geopack.geogsm(*self.test['r_gsm'],-1)))
+
+        self.assertTrue(approx_eq(self.test['r_gsw'], geopack.gswgsm(*self.test['r_gsm'],-1)))
+        self.assertTrue(approx_eq(self.test['r_gsm'], geopack.gswgsm(*self.test['r_gsw'], 1)))
 
         # test trace.
         self.assertTrue(approx_eq(self.test['trace_t89_igrf'],
