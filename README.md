@@ -21,7 +21,7 @@ The package requires Python pre-installed and depends on the `numpy` and `scipy`
 
 To install the Python `geopack` through `pip`, type `> pip3 install geopack` in the terminal.
 
-Or manually install on a Mac (and hopefully Linux):
+To install the **latest** version, manually install on a Mac (and hopefully Linux):
 
 1. Download the latest package at https://github.com/tsssss/geopack/. 
 2. Unzip it, open a terminal, and `cd` to the unzipped directory
