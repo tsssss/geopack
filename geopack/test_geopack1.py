@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from geopack08 import geopack,t89,t96,t01,t04
+from geopack import geopack,t89,t96,t01,t04
 import collections
 
 
@@ -25,6 +25,10 @@ class KnownValues(unittest.TestCase):
         'r_sm': (-2.9670092644479498,0.3,5.004683409035982),
         'r_mag': (2.298686529948157,1.8997853069109853,5.004683409035982),
         'r_gei': (-0.05919908606124502,3.691434427381819,4.5066403602406275),
+        'geod': (110,2),
+        'geo': (6470.4815,0.431707561),
+        'geod2': (109.546387,1.14329302),
+        'geo2': (6470,0.43),
         'recalc': -0.53356312486214,
         'sun': (2.296253490174557,4.899558241818756,4.915948604659666,-0.40152585209539443,0.4090854263337441),
         'igrf': (262.8292494578462,-19.305779063359893,-50.34573331501855),
@@ -52,10 +56,10 @@ class KnownValues(unittest.TestCase):
     test['mgnp_shu_par'] = test['mgnp_t96_par']+ [test['bzimf']]
 
     def test_to_known_values(self):
-        """geopack08 should give known result with known input"""
+        """geopack should give known result with known input"""
 
         # test recalc, which returns dipole tilt angle in rad.
-        self.assertEqual(self.test['recalc'], geopack.recalc(self.test['ut'],*self.test['v_gse']))
+        self.assertEqual(self.test['recalc'], geopack.recalc(self.test['ut'], *self.test['v_gse']))
 
         # test sun, which returns 5 angles in rad.
         self.assertEqual(self.test['sun'], geopack.sun(self.test['ut']))
@@ -74,35 +78,38 @@ class KnownValues(unittest.TestCase):
 
         # test coord transform, which returns B in nT.
         self.assertTrue(approx_eq(self.test['r_mag'], geopack.geomag(*self.test['r_geo'], 1)))
-        self.assertTrue(approx_eq(self.test['r_geo'], geopack.geomag(*self.test['r_mag'],-1)))
+        self.assertTrue(approx_eq(self.test['r_geo'], geopack.geomag(*self.test['r_mag'], -1)))
 
         self.assertTrue(approx_eq(self.test['r_geo'], geopack.geigeo(*self.test['r_gei'], 1)))
-        self.assertTrue(approx_eq(self.test['r_gei'], geopack.geigeo(*self.test['r_geo'],-1)))
+        self.assertTrue(approx_eq(self.test['r_gei'], geopack.geigeo(*self.test['r_geo'], -1)))
 
-        self.assertTrue(approx_eq(self.test['r_sm'] , geopack.magsm (*self.test['r_mag'], 1)))
-        self.assertTrue(approx_eq(self.test['r_mag'], geopack.magsm (*self.test['r_sm'] ,-1)))
+        self.assertTrue(approx_eq(self.test['r_sm'],  geopack.magsm (*self.test['r_mag'], 1)))
+        self.assertTrue(approx_eq(self.test['r_mag'], geopack.magsm (*self.test['r_sm'], -1)))
 
         self.assertTrue(approx_eq(self.test['r_gse'], geopack.gsmgse(*self.test['r_gsm'], 1)))
-        self.assertTrue(approx_eq(self.test['r_gsm'], geopack.gsmgse(*self.test['r_gse'],-1)))
+        self.assertTrue(approx_eq(self.test['r_gsm'], geopack.gsmgse(*self.test['r_gse'], -1)))
 
-        self.assertTrue(approx_eq(self.test['r_gsm'], geopack.smgsm (*self.test['r_sm'] , 1)))
-        self.assertTrue(approx_eq(self.test['r_sm'] , geopack.smgsm (*self.test['r_gsm'],-1)))
+        self.assertTrue(approx_eq(self.test['r_gsm'], geopack.smgsm (*self.test['r_sm'], 1)))
+        self.assertTrue(approx_eq(self.test['r_sm'],  geopack.smgsm (*self.test['r_gsm'], -1)))
 
         self.assertTrue(approx_eq(self.test['r_gsm'], geopack.geogsm(*self.test['r_geo'], 1)))
-        self.assertTrue(approx_eq(self.test['r_geo'], geopack.geogsm(*self.test['r_gsm'],-1)))
+        self.assertTrue(approx_eq(self.test['r_geo'], geopack.geogsm(*self.test['r_gsm'], -1)))
 
-        self.assertTrue(approx_eq(self.test['r_gsw'], geopack.gswgsm(*self.test['r_gsm'],-1)))
+        self.assertTrue(approx_eq(self.test['r_gsw'], geopack.gswgsm(*self.test['r_gsm'], -1)))
         self.assertTrue(approx_eq(self.test['r_gsm'], geopack.gswgsm(*self.test['r_gsw'], 1)))
+
+        self.assertTrue(approx_eq(self.test['geo'], geopack.geodgeo(*self.test['geod'],  1), 1e-3))
+        self.assertTrue(approx_eq(self.test['geod2'], geopack.geodgeo(*self.test['geo2'], -1), 1e-3))
 
         # test trace.
         self.assertTrue(approx_eq(self.test['trace_t89_igrf'],
-            geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par1'][0], 't89', 'igrf')))
+                                  geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par1'][0], 't89', 'igrf')))
         self.assertTrue(approx_eq(self.test['trace_t96_igrf'],
-            geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par2'][0], 't96', 'igrf')))
+                                  geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par2'][0], 't96', 'igrf')))
         self.assertTrue(approx_eq(self.test['trace_t01_igrf'],
-            geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par2'][0], 't01', 'igrf')))
+                                  geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par2'][0], 't01', 'igrf')))
         self.assertTrue(approx_eq(self.test['trace_t04_igrf'],
-            geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par2'][0], 't04', 'igrf')))
+                                  geopack.trace(*self.test['r_gsm'], *self.test['trace_setting'], self.test['par2'][0], 't04', 'igrf')))
 
         # test magnetopaus model.
         self.assertTrue(approx_eq(self.test['mgnp_t96'], geopack.t96_mgnp(*self.test['mgnp_t96_par'], *self.test['r_gsm'])))

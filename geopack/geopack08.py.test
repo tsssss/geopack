@@ -1041,13 +1041,13 @@ def rhand(x,y,z,parmod,exname,inname):
 
     return r1,r2,r3
 
+
 def step(x,y,z, ds,errin,parmod,exname,inname):
     """
     Re-calculates {x,y,z}, making a step along a field line.
     model version, the array parmod contains input parameters for that model
 
     :param x,y,z: the input position
-    :param ds: the step size
     :param errin: the permissible error value
     :param parmod: contains input parameters for that model
     :param exname: name of the subroutine for the external field.
@@ -1063,34 +1063,36 @@ def step(x,y,z, ds,errin,parmod,exname,inname):
 
     if errin <=0: raise ValueError
     errcur = errin
-    i = 0
-    maxloop = 100
+    r11,r12,r13,r21,r22,r23,r31,r32,r33,r41,r42,r43,r51,r52,r53 = [0]*15
+    dsmax = ds
+    if dsmax<0: dsmax = np.abs(dsmax)
 
-    while (errcur >= errin) & (i < maxloop):
-        ds3=-ds/3.
+    maxloop = 100
+    for i in range(maxloop):
+        ds3 = -ds/3.
         r11,r12,r13 = rhand(x,y,z,parmod,exname,inname)
         r21,r22,r23 = rhand(x+r11,y+r12,z+r13,parmod,exname,inname)
         r31,r32,r33 = rhand(x+.5*(r11+r21),y+.5*(r12+r22),z+.5*(r13+r23),parmod,exname,inname)
         r41,r42,r43 = rhand(x+.375*(r11+3.*r31),y+.375*(r12+3.*r32),z+.375*(r13+3.*r33),parmod,exname,inname)
         r51,r52,r53 = rhand(x+1.5*(r11-3.*r31+4.*r41),y+1.5*(r12-3.*r32+4.*r42),z+1.5*(r13-3.*r33+4.*r43),parmod,exname,inname)
-        errcur=np.abs(r11-4.5*r31+4.*r41-.5*r51)+np.abs(r12-4.5*r32+4.*r42-.5*r52)+np.abs(r13-4.5*r33+4.*r43-.5*r53)
-        if errcur < errin: break
+        errcur = np.abs(r11-4.5*r31+4.*r41-.5*r51)+np.abs(r12-4.5*r32+4.*r42-.5*r52)+np.abs(r13-4.5*r33+4.*r43-.5*r53)
+        if errcur > errin: ds *= 0.5
+        else:
+            if np.abs(ds) > dsmax: ds = dsmax*np.sign(ds)
+            else: break
 
-        ds *= 0.5
-        i += 1
-    else:
-        print('reached maximum loop ...')
-        return
-
+    # making the step:
     x += 0.5*(r11+4.*r41+r51)
     y += 0.5*(r12+4.*r42+r52)
     z += 0.5*(r13+4.*r43+r53)
-    if (errcur < (errin*0.04)) & (np.abs(ds) < 1.33):
-        ds *= 1.5
+
+    # if the actual error is too small (less than 4% of errin) and ds smaller
+    # than dsmax/1.5, then we increase the stepsize for the next step by 50%
+    if (errcur < (errin*0.04)) & (np.abs(ds) < dsmax/1.5): ds *= 1.5
 
     return x,y,z
 
-def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
+def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf',err=0.0001,lmax=100):
     """
     Traces a field line from an arbitrary point of space to the earth's surface or
     to a model limiting boundary.
@@ -1119,43 +1121,54 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
         The concrete meaning of the components of parmod depends on a specific version of the external field model.
     :param exname: name of the subroutine for the external field.
     :param inname: name of the subroutine for the internal field.
+    :param err: permissible step error. A reasonable estimate providing a sufficient accuracy for most
+        applications is err=0.0001. Smaller/larger values will result in larger/smaller number
+        of steps and, hence, of output field line points. Note that using much smaller values
+        of err may require using a double precision version of the entire package.
+    :param dsmax: the upper limit of step size (sets a desired maximal spacing between the field line points).
+    :param lmax: the maximum number of returned array of field line points (xx,yy,zz).
     :return:
         xf,yf,zf. GSM coords of the last calculated point of a field line
         xx,yy,zz. Arrays containing coords of field line points. Here their maximal length was assumed equal to 999.
         l. Actual number of the calculated field line points. if l exceeds 999, tracing terminates, and a warning is displayed.
 
-    Last mofification:  March 31, 2003
+    Last mofification:  Jan 30, 2008
     Author:  N.A. Tsyganenko
     """
 
-    # common /geopack1/ aa(26),dd,bb(8)
-    global aa, dd, bb, ds3
+    global aa, dd, bb, dsmax, ds3   # add dsmax in to keep step interface untouched.
 
-    err, l, ds, x,y,z, dd, al = 0.001, 0, 0.5*dir, xi,yi,zi, dir, 0.
-    xx = np.array([x])
-    yy = np.array([y])
-    zz = np.array([z])
-    maxloop = 1000
+    nrev, dd = 0,dir
+    ds, x,y,z = 0.5*dir, xi,yi,zi
+    ds3 = -ds/3
 
     # Here we call RHAND just to find out the sign of the radial component of the field
     # vector, and to determine the initial direction of the tracing (i.e., either away
     # or towards Earth):
-    ds3 = -ds/3.
-    r1,r2,r3 = rhand(x,y,z,parmod,exname,inname)
+    r1,r2,r3 = rhand(x,y,z, parmod, exname,inname)
 
     # |ad|=0.01 and its sign follows the rule:
     # (1) if dir=1 (tracing antiparallel to B vector) then the sign of ad is the same as of Br
     # (2) if dir=-1 (tracing parallel to B vector) then the sign of ad is opposite to that of Br
     #     ad is defined in order to initialize the value of rr (radial distance at previous step):
-    ad=0.01
-    if (x*r1+y*r2+z*r3) < 0: ad=-0.01
+    ad = 0.01
+    if (x*r1+y*r2+z*r3) < 0: ad = -0.01
 
     rr=np.sqrt(x**2+y**2+z**2)+ad
 
-    while l < maxloop:
-        ryz=y**2+z**2
-        r2=x**2+ryz
-        r=np.sqrt(r2)
+    xx = np.array([])
+    yy = np.array([])
+    zz = np.array([])
+    if type(lmax) == type(None): lmax = 100
+    for l in range(lmax):
+        xx = np.append(xx,x)
+        yy = np.append(yy,y)
+        zz = np.append(zz,z)
+
+        ryz = y**2+z**2
+        r2 = x**2+ryz
+        r = np.sqrt(r2)
+        xr,yr,zr = x,y,z
 
         # check if the line hit the outer tracing boundary; if yes, then terminate the tracing
         if (r > rlim) | (ryz > 1600) | (x>20): break
@@ -1164,37 +1177,37 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
         # if yes, then calculate the footpoint position by interpolation
         if (r < r0) & (rr > r):
             # find the footpoint position by interpolating between the current and previous field line points:
-            r1=(r0-r)/(rr-r)
-            x=x-(x-xr)*r1
-            y=y-(y-yr)*r1
-            z=z-(z-zr)*r1
+            r1 = (r0-r)/(rr-r)
+            x -= (x-xr)*r1
+            y -= (y-yr)*r1
+            z -= (z-zr)*r1
             break
 
-        # check if (i) we are moving outward, or (ii) we are still sufficiently
-        # far from Earth (beyond R=5Re); if yes, proceed further:
-        if (r >= rr) | (r > 5):
-            pass
-        # now we moved closer inward (between R=3 and R=5); go to 3 and begin logging
-        # previous values of X,Y,Z, to be used in the interpolation (after having
-        # crossed the inner tracing boundary):
-        else:
-            if r >= 3:
-                # We entered inside the sphere R=3: to avoid too large steps (and hence inaccurate
-                # interpolated position of the footpoint), enforce the progressively smaller
-                # stepsize values as we approach the inner boundary R=R0:
-                ds = dir
-            else:
-                fc = 0.2
-                if (r-r0) < 0.05: fc = 0.05
-                al = fc*(r-r0+0.2)
-                ds = dir*al
-            xr,yr,zr = [x,y,z]
-        rr=r
+        # check if we are moving outward, or R is still larger than 3 Re; if yes, proceed further:
+        if (r < rr) & (r < 3):
+            #  Now we entered inside the sphere R=3: to avoid too large steps (and hence
+            #  inaccurate interpolated position of the footpoint), enforce the progressively
+            #  smaller stepsize values as we approach the inner boundary R=R0:
+            fc = 0.2
+            if (r-r0) < 0.05: fc = 0.05
+            al = fc*(r-r0+0.2)
+            ds = dir*al
+
+        drp = r-rr
+        rr = r
+        dsmax = ds
         x,y,z = step(x,y,z,ds,err,parmod,exname,inname)
-        np.append(xx,x)
-        np.append(yy,y)
-        np.append(zz,z)
-        l += 1
+
+        # Check the total number NREV of changes in the tracing radial direction; (NREV.GT.2) means
+        # that the line started making multiple loops, in which case we stop the process:
+        r = np.sqrt(x**2+y**2+z**2)
+        dr = r-rr
+        if drp*dr < 0: nrev += 1
+        if nrev > 4: break
+
+    xx = np.append(xx,x)
+    yy = np.append(yy,y)
+    zz = np.append(zz,z)
 
     return x,y,z
 

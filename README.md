@@ -1,7 +1,7 @@
 # The geopack and Tsyganenko models in Python
 **Author: Sheng Tian, Univ. of Minnesota, tianx138@umn.edu**
 
-This python `geopack` has integrated two modules originally written in Fortran: the `geopack` and the Tsyganenko models (T89, T96, T01, and T04). The Fortran `geopack` is available at https://ccmc.gsfc.nasa.gov/modelweb/magnetos/data-based/Geopack_2005.html and its DLM in IDL is available at http://ampere.jhuapl.edu/code/idl_geopack.html. As a crucial complement to `geopack`, the Tsyganenko models are available in Fortran at https://ccmc.gsfc.nasa.gov/models/modelinfo.php?model=Tsyganenko%20Magnetic%20Field.
+This python `geopack` has integrated two modules originally written in Fortran: the `geopack` and the Tsyganenko models (T89, T96, T01, and T04). The Fortran `geopack05` is available at https://ccmc.gsfc.nasa.gov/modelweb/magnetos/data-based/Geopack_2005.html and `geopack08` is available at http://geo.phys.spbu.ru/~tsyganenko/Geopack-2008.html. Their DLM in IDL is available at http://ampere.jhuapl.edu/code/idl_geopack.html. As a crucial complement to `geopack05` and `geopack08`, the Tsyganenko models are available in Fortran at https://ccmc.gsfc.nasa.gov/models/modelinfo.php?model=Tsyganenko%20Magnetic%20Field.
 
 Test results are attached in `./test_geopack1.md` to demonstrate that the Python `geopack` returns the same outputs as the Fortran and IDL counterparts. However, invisible to the user, several improvements have been implemented:
 1. The latest IGRF coefficients are used, which cover the time range from 1900 to 2020. Years beyond this range are valid inputs and the corresponding IGRF coefficients will be extrapolated.
@@ -12,7 +12,9 @@ Test results are attached in `./test_geopack1.md` to demonstrate that the Python
 
 4. All `goto` statements in the Fortran `geopack` and Tsyganenko models are eliminated.
 
-   
+5. A `gswgsm` is added to support the new GSW coordinate introduced in `geopack08`.
+
+    
 
 ## Installation
 The package requires Python pre-installed and depends on the `numpy` and `scipy` packages. I've only tested the Python `geopack` on Mac OS in Python 3.6. Performance on other platform and other versions of Python is unclear.
@@ -27,8 +29,8 @@ Or manually install on a Mac (and hopefully Linux):
 
 
 
-## Notes on `geopack_08` and `T07d`
-Strictly speaking, the Fortran `geopack` implemented here in Python is the `geopack_05`. A new version of `geopack_08` has been released, where the main change is to replace the widely used `GSM` coordinate with a newly defined `GSW` coordinate. Similarly, a new Tsyganenko `T07d` model has been released with a new algorithm. Support of geopack_08 and T07d are under development.
+## Notes on `geopack08` and `T07d`
+The Python version is compatible with both Fortran `geopack05`  and `geopack08`. The major change of`geopack08` is that it introduces a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable to study the tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support T07d is under development.
 
 
 
@@ -42,8 +44,8 @@ from geopack import geopack, t89
 ut = 100
 xgsm,ygsm,zgsm = [1,2,3]
 ps = geopack.recalc(ut)
-b0xgsm,b0ygsm,b0zgsm = geopack.dip(xgsm,ygsm,zgsm)
-dbxgsm,dbygsm,dbzgsm = t89.t89(2, ps, xgsm,ygsm,zgsm)
+b0xgsm,b0ygsm,b0zgsm = geopack.dip(xgsm,ygsm,zgsm)    		# calc dipole B in GSM.
+dbxgsm,dbygsm,dbzgsm = t89.t89(2, ps, xgsm,ygsm,zgsm)       # calc T89 dB in GSM.
 bxgsm,bygsm,bzgsm = [b0xgsm+dbxgsm,b0ygsm+dbygsm,b0zgsm+dbzgsm]
 print(bxgsm,bygsm,bzgsm)
 -539.5083883330017 -569.5906371610358 -338.8680547453352
@@ -57,6 +59,26 @@ import geopack
 ps = geopack.geopack.recalc(ut)
 b0xgsm,b0ygsm,b0zgsm = geopack.geopack.dip(xgsm,ygsm,zgsm)
 dbxgsm,dbygsm,dbzgsm = geopack.t89.t89(2, ps, xgsm,ygsm,zgsm)
+print(b0xgsm,b0ygsm,b0zgsm)
+-544.425907831383 -565.7731166717405 -321.43413443108597
+```
+
+To use the feature in `geopack08`, users can supply the solar wind magnetic field in GSE and express vectors in GSW
+
+```python
+from geopack import geopack
+
+ut = 100
+xgsm,ygsm,zgsm = [1,2,3]
+vgse = [-400,0,10]                                       # solar wind velocity in GSE.
+ps = geopack.recalc(ut, *vgse)                           # init with time & SW velocity.
+# or use ps = geopack.recalc(ut, vgse[0],vgse[1],vgse[2])
+xgsw,ygsw,zgsw = gswgsm(xgsm,ygsm,zgsm, -1)              # convert position to GSW.
+b0xgsw,b0ygsw,b0zgsw = geopack.dip_gsw(xgsw,ygsw,zgsw)   # calc dipole B in GSW.
+print(b0xgsw,b0ygsw,b0zgsw)
+-540.5392569443875 -560.7296994901754 -336.47913346240205
+print((geopack.gswgsm(b0xgsw,b0ygsw,b0zgsw, 1)))         # dipole B in GSM.
+(-544.4259078313833, -565.7731166717405, -321.4341344310859)
 ```
 
 
@@ -71,12 +93,14 @@ The Python `geopack` follows the Python way: function parameters are all input p
     ```
     Example
     ps = recalc(ut)
+    ps = recalc(ut, vxgse,vygse,vzgse)
     
     Input
     ut: The given time in the universal time in second.
+    vxgse,vygse,vzgse: The solar wind velocity in GSE. If they are omitted, a default value of [-400,0,0] is used so that GSM and GSW are the same.
     
     Return
-    ps: Dipole tilt angle in radian.
+    ps: Dipole tilt angle in radian (defined in GSM, not GSW).
     ```
 
 * Get the internal model magnetic fields
@@ -94,6 +118,19 @@ The Python `geopack` follows the Python way: function parameters are all input p
     bxgsm,bygsm,bzgsm: Cartesian GSM components of the internal magnetic field in nT.
     ```
 
+  * `dip_gsw`. Calculate the internal magnetic field from the dipole model for a given position and time (The time dependence is taken care of by `recalc`), in the GSW coordinate.
+
+    ```
+    Example
+    bxgsw,bygsw,bzgsw = dip_gsw(xgsw,ygsw,zgsw)
+    
+    Input
+    xgsw,ygsw,zgsw: The given position in cartesian GSW coordinate in Re (earth radii, 1 Re = 6371.2 km).
+    
+    Return
+    bxgsw,bygsw,bzgsw: Cartesian GSW components of the internal magnetic field in nT.
+    ```
+
   * `igrf_gsm`. Calculate the internal magnetic field from the IGRF model (http://www.ngdc.noaa.gov/iaga/vmod/igrf.html) for a given position and time, in the GSM coordinate.
 
     ```
@@ -105,6 +142,19 @@ The Python `geopack` follows the Python way: function parameters are all input p
     
     Return
     bxgsm,bygsm,bzgsm: Cartesian GSM components of the internal magnetic field in nT.
+    ```
+
+  * `igrf_gsw`. Calculate the internal magnetic field from the IGRF model (http://www.ngdc.noaa.gov/iaga/vmod/igrf.html) for a given position and time, in the GSW coordinate.
+
+    ```
+    Example
+    bxgsw,bygsw,bzgsw = igrf_gsw(xgsw,ygsw,zgsw)
+    
+    Input
+    xgsw,ygsw,zgsw: The given position in cartesian GSW coordinate in Re (earth radii, 1 Re = 6371.2 km).
+    
+    Return
+    bxgsw,bygsw,bzgsw: Cartesian GSW components of the internal magnetic field in nT.
     ```
 
   * `igrf_geo`. Calculate the internal magnetic field from the IGRF model (http://www.ngdc.noaa.gov/iaga/vmod/igrf.html) for a given position and time, in the GEO coordinate.
@@ -191,7 +241,7 @@ The Python `geopack` follows the Python way: function parameters are all input p
 
 * Convert a cartesian vector among coordinates
 
-  The six supported coordinates are: GEO, GEI, MAG, GSM, GSE, and SM. They are defined in Hapgood (1992). The six functions for the coordinate transform are:  `geomag`, `geigeo`, `magsm`, `gsmgse`, `smgsm`, `geogsm`. They share the same interface, so they are explained together.
+  The supported coordinates are: GEO, GEI, MAG, GSM, GSE, and SM. They are defined in Hapgood (1992). And GSW, defined in Hones+(1986) is added in `geopack_08`. The functions for the coordinate transform are:  `geomag`, `geigeo`, `magsm`, `gsmgse`, `smgsm`, `geogsm`,`gswgsm`. They share the same interface, so they are explained together.
 
   ```
   Usage
@@ -205,6 +255,22 @@ The Python `geopack` follows the Python way: function parameters are all input p
   Input and Return
   h1,h2,h3: Cartesian components of a vector in "coord1"
   b1,b2,b3: Cartesian components of the vector in "coord2"
+  flag: flag > 0 -- coord1 to coord2; flag < 0 -- coord2 to coord1
+  ```
+
+  In addition `geodgeo` converts a position between altitude (in km)/geodetic latitude (in rad) and geocentric distance (in km)/colatitude (in rad).
+
+  ```
+  Usage
+  b1,b2 = geodgeo(h1,h2, flag)
+  
+  Example
+  rgeo,thetageo = geodgeo(hgeod,xmugeod,  1)
+  hgeod,xmugeod = geodgeo(rgeo,thetageo, -1)
+  
+  Input and Return
+  h1,h2: Components of a vector in "coord1"
+  b1,b2: Components of a vector in "coord2"
   flag: flag > 0 -- coord1 to coord2; flag < 0 -- coord2 to coord1
   ```
 
@@ -235,12 +301,3 @@ Hapgood, M. A. (1992). Space physics coordinate transformations: A user guide. P
 N. A. Tsyganenko, A new data-based model of the near magnetosphere magnetic field: 1. Mathematical structure. 2. Parameterization and fitting to observations (submitted to JGR, July 2001)
 
 N. A. Tsyganenko and M. I. Sitnov, Modeling the dynamics of the inner magnetosphere during strong geomagnetic storms, J. Geophys. Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798, 2005.
-=======
-# slib
-Sheng Tian's IDL library.
-
-The library includes
-1, ./sgraph. Generate same output on computer screen, in pdf and in png.
-2, ./cdf. A sub-library on CDF I/O.
-3, ./sread. A sub-library that loads data from various spacecraft missions. (To be added.)
-4, etc.

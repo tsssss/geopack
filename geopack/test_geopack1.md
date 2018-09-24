@@ -131,7 +131,8 @@ Note that we are testing the Python `igrf_gsm`, which is a wrapper of `igrf_geo`
 
 The coordinate transforms are being tested with the following inputs:
 * Time/dipole tilt: 2001-01-01/02:03:04 UT/`ps = -0.533585131 rad`
-* Position: `(xgsm,ygsm,zgsm) = (-5.1,0.3,2.8)`
+* Position: `(xgsm,ygsm,zgsm) = (-5.1,0.3,2.8) Re`
+* Solar wind: `(vxgse,vygse,vzgse) = (-400,0,10) km/s` 
 
 Here are its transforms in all the supported coordinates:
 
@@ -153,6 +154,23 @@ Here are its transforms in all the supported coordinates:
 | GEI | Fortran |-0.0591988564        | 3.69142103         | 4.50665092         |
 |                      | Python  |-0.05919908606124502 | 3.691434427381819  | 4.5066403602406275 |
 |                      | IDL DLM |-0.059239285         | 3.6914216          | 4.5066502          |
+| GSW | Fortran |-5.16504717 | 0.319132447 | 2.67590141 |
+| | Python |-5.1650469653520155 | 0.3191264636083484 | 2.6759013707408523 |
+| | IDL DLM |-5.1650466 | 0.31912656 | 2.6759018 |
+
+A separated test for `GEODGEO` is done for GEOD: `(h,xmu) = (110 km,2 rad)`. We get
+
+| Coord | Version | R (km)            | Theta (rad)         |
+| ----- | ------- | ----------------- | ------------------- |
+| GEO   | Fortran | 6470.48145        | 0.431707561         |
+|       | Python  | 6470.481107075519 | 0.43170762466397006 |
+
+and for GEO: `(r,theta) = (6470 km,0.43 rad)`. We get
+
+| Coord | Version | h (km)             | Xmu (rad)         |
+| ----- | ------- | ------------------ | ----------------- |
+| GEOD  | Fortran | 109.546387         | 1.14329302        |
+|       | Python  | 109.54721490560405 | 1.143335918840163 |
 
 
 
