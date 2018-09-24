@@ -30,7 +30,7 @@ To install the **latest** version, manually install on a Mac (and hopefully Linu
 
 
 ## Notes on `geopack08` and `T07d`
-The Python version is compatible with both Fortran `geopack05`  and `geopack08`. The major change of`geopack08` is that it introduces a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable to study the tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support T07d is under development.
+The Python version is compatible with both Fortran `geopack05`  and `geopack08`. The major change of `geopack08` is that it introduces a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable to study the tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support T07d is under development.
 
 
 
