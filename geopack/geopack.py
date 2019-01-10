@@ -1196,7 +1196,7 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
         np.append(zz,z)
         l += 1
 
-    return x,y,z
+    return x,y,z, xx,yy,zz
 
 
 
