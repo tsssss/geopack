@@ -1090,7 +1090,7 @@ def step(x,y,z, ds,errin,parmod,exname,inname):
 
     return x,y,z
 
-def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
+def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf',maxloop=1000):
     """
     Traces a field line from an arbitrary point of space to the earth's surface or
     to a model limiting boundary.
@@ -1135,7 +1135,6 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
     xx = np.array([x])
     yy = np.array([y])
     zz = np.array([z])
-    maxloop = 1000
 
     # Here we call RHAND just to find out the sign of the radial component of the field
     # vector, and to determine the initial direction of the tracing (i.e., either away
@@ -1191,14 +1190,12 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf'):
             xr,yr,zr = [x,y,z]
         rr=r
         x,y,z = step(x,y,z,ds,err,parmod,exname,inname)
-        np.append(xx,x)
-        np.append(yy,y)
-        np.append(zz,z)
+        xx = np.append(xx,x)
+        yy = np.append(yy,y)
+        zz = np.append(zz,z)
         l += 1
 
     return x,y,z, xx,yy,zz
-
-
 
 def shuetal_mgnp(xn_pd,vel,bzimf,xgsm,ygsm,zgsm):
     """
