@@ -6,7 +6,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='geopack',
-    version='1.0.3',
+    version='1.0.5',
     author='Sheng Tian',
     author_email='tianx138@umn.edu',
     description='Python version of geopack and Tsyganenko models, compatible with geopack05 and geopack08',
@@ -18,6 +18,7 @@ setuptools.setup(
     license= 'MIT',
     keywords= ['geopack','space physics','Tsyganenko model'],
     packages= setuptools.find_packages(),
+    package_data={'':['*.txt','*.md']},
     classifiers= [
         'Programming Language :: Python :: 3',
         'Operating System :: MacOS',
