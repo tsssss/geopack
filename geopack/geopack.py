@@ -1187,7 +1187,7 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf',maxloop=
                 if (r-r0) < 0.05: fc = 0.05
                 al = fc*(r-r0+0.2)
                 ds = dir*al
-            xr,yr,zr = [x,y,z]
+        xr,yr,zr = [x,y,z]
         rr=r
         x,y,z = step(x,y,z,ds,err,parmod,exname,inname)
         xx = np.append(xx,x)
