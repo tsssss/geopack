@@ -1155,18 +1155,20 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf',maxloop=
         ryz=y**2+z**2
         r2=x**2+ryz
         r=np.sqrt(r2)
+        xr,yr,zr = [x,y,z]
 
         # check if the line hit the outer tracing boundary; if yes, then terminate the tracing
-        if (r > rlim) | (ryz > 1600) | (x>20): break
+        if (r >= rlim) | (ryz >= 1600) | (x>=20): break
 
         # check whether or not the inner tracing boundary was crossed from outside,
         # if yes, then calculate the footpoint position by interpolation
-        if (r < r0) & (rr > r):
+        if (r < r0) & (rr > r): # this is crossing the inner boundary from inside!!!??? looks like it will trace into the boundary and then bounce back out.
             # find the footpoint position by interpolating between the current and previous field line points:
             r1=(r0-r)/(rr-r)
             x=x-(x-xr)*r1
             y=y-(y-yr)*r1
             z=z-(z-zr)*r1
+            xr,yr,zr = [x,y,z]
             break
 
         # check if (i) we are moving outward, or (ii) we are still sufficiently
@@ -1187,7 +1189,6 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf',maxloop=
                 if (r-r0) < 0.05: fc = 0.05
                 al = fc*(r-r0+0.2)
                 ds = dir*al
-        xr,yr,zr = [x,y,z]
         rr=r
         x,y,z = step(x,y,z,ds,err,parmod,exname,inname)
         xx = np.append(xx,x)
@@ -1374,4 +1375,3 @@ def t96_mgnp(xn_pd,vel,xgsm,ygsm,zgsm):
 
 
 init_igrf()
-
