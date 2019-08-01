@@ -35,6 +35,27 @@ The Python version is compatible with both Fortran `geopack05`  and `geopack08`.
 ## Notes on the G and W parameters
 There are two G parameters used as an optional input to the T01 model. There definitions are in Tsyganenko (2001). Similarly, there are six W parameters used as an optional input to the T04 model, defined in Tsyganenko (2005). The python version does not support the calculations of the G and W parameters, because as far as I know, they are rarely used. However, users who think this is important are encouraged to contact me. I will implement support for them if there are demands.
 
+## Example of UT conversion
+The model needs to be updated for each new time step. Time is expressed in "UT", which is the seconds from 1970-01-01/00:00. Here are some examples in Python to get UT from intuitive inputs.
+
+```python
+# Test for 2001-01-02/03:04:05 UT
+import datetime
+from dateutil import parser
+
+# From date and time
+t1 = datetime.datetime(2001,1,2,3,4,5)
+t0 = datetime.datetime(1970,1,1)
+ut = (t1-t0).total_seconds()
+print(ut)
+978404645.0
+
+# From string, need the package dateutil
+t1 = parser.parse('2001-01-02/03:04:05')
+ut = (t1-t0).total_seconds()
+print(ut)
+978404645.0
+```
 
 
 ## Usage
