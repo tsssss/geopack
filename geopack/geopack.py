@@ -13,7 +13,7 @@ def init_igrf():
 
     print('Load IGRF coefficients ...')
 
-    bfn = 'igrf12coeffs.txt'
+    bfn = 'igrf13coeffs.txt'
     locffn = os.path.join(os.path.dirname(__file__), bfn)
 
     nheader = 3
