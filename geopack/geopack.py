@@ -1108,7 +1108,8 @@ def trace(xi,yi,zi,dir,rlim=10,r0=1,parmod=2,exname='t89',inname='igrf',maxloop=
     tilt angle psi (in radians) and its sine (sps) and cosine (cps) can be explicitly
     specified and forwarded to the common block geopack1 (11th, 12th, and 16th elements, resp.)
 
-    :param xi,yi,zi: gsm coords of initial point (in earth radii, 1 re = 6371.2 km)
+    :param xi,yi,zi: gsm coords of initial point (in earth radii, 1 re = 6371.2 km). Must be outside the sphere of r0, 
+        otherwise tracing will not start.
     :param dir: sign of the tracing direction: if
         dir=1.0 then we move antiparallel to the field vector (e.g. from northern to southern conjugate point), and if
         dir=-1.0 then the tracing goes in the opposite direction.
