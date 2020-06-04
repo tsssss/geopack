@@ -6,7 +6,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='geopack',
-    version='1.0.7',
+    version='1.0.8',
     author='Sheng Tian',
     author_email='tianx138@umn.edu',
     description='Python version of geopack and Tsyganenko models, compatible with geopack05 and geopack08',
