@@ -37,8 +37,8 @@ There are two G parameters used as optional inputs to the T01 model. There defin
 
 Back in my mind, there are some potential ways to implement the G and W parameter. But please do understand that the package does not have any funding support. I usually do major updates during summer or winter break, when it's easier to find spare time. For users that are familiar with the G and W parameters, let me know if you have any suggestions or ideas on solutions to implement them in the package!
 
-## Example of UT conversion
-The model needs to be updated for each new time step. Time is expressed in "UT", which is the seconds from 1970-01-01/00:00. Here are some examples in Python to get UT from intuitive inputs.
+## Example of getting the time tag
+The model needs to be updated for each new time step. Time used is the unix timestamp, which is the seconds from 1970-01-01/00:00. Here are some examples in Python to get the time from intuitive inputs.
 
 ```python
 # Test for 2001-01-02/03:04:05 UT
@@ -67,7 +67,7 @@ Here is a short example on how to import the package and call functions. A detai
 ```python
 from geopack import geopack, t89
 
-ut = 100
+ut = 100    # 1970-01-01/00:01:40 UT.
 xgsm,ygsm,zgsm = [1,2,3]
 ps = geopack.recalc(ut)
 b0xgsm,b0ygsm,b0zgsm = geopack.dip(xgsm,ygsm,zgsm)    		# calc dipole B in GSM.
@@ -82,7 +82,7 @@ And here is another way to import the package and refer to the functions.
 ```python
 import geopack
 
-ut = 100
+ut = 100    # 1970-01-01/00:01:40 UT.
 xgsm,ygsm,zgsm = [1,2,3]
 ps = geopack.geopack.recalc(ut)
 b0xgsm,b0ygsm,b0zgsm = geopack.geopack.dip(xgsm,ygsm,zgsm)
@@ -96,7 +96,7 @@ Another way to import the package.
 ```python
 import geopack.geopack as gp
 
-ut = 100
+ut = 100    # 1970-01-01/00:01:40 UT.
 xgsm,ygsm,zgsm = [2,1,100]
 ps = gp.recalc(ut)
 xgsm,ygsm,zgsm = gp.geogsm(2,1,100, 1)
@@ -109,7 +109,7 @@ To use the feature in `geopack08`, users can supply the solar wind magnetic fiel
 ```python
 from geopack import geopack
 
-ut = 100
+ut = 100    # 1970-01-01/00:01:40 UT.
 xgsm,ygsm,zgsm = [1,2,3]
 vgse = [-400,0,10]                                       # solar wind velocity in GSE.
 ps = geopack.recalc(ut, *vgse)                           # init with time & SW velocity.
