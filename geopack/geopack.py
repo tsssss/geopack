@@ -879,7 +879,6 @@ def geodgeo(p1,p2, j):
         phi = np.pi*0.5-theta
         phi1,dphi,h,xmu,tol = phi,0,0,0,1e-6
         for n in range(100):
-            if np.abs(dphi) > tol: break
             sp = np.sin(phi1)
             arg = sp*(1+beta)/np.sqrt(1+beta*(2+beta)*sp**2)
             xmu = np.arcsin(arg)
@@ -891,6 +890,7 @@ def geodgeo(p1,p2, j):
             rr = np.sqrt(x**2+z**2)
             dphi = np.arcsin(z/rr)-phi
             phi1 -= dphi
+            if np.abs(dphi) <= tol: break
         return h,xmu
 
 
