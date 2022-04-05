@@ -6,7 +6,7 @@ This python `geopack` has integrated two modules originally written in Fortran: 
 Test results are attached in `./test_geopack1.md` to demonstrate that the Python `geopack` returns the same outputs as the Fortran and IDL counterparts. However, invisible at the user-level, several improvements have been internally implemented:
 1. The latest IGRF coefficients are used, which cover the time range from 1900 to 2025. Years beyond this range are valid inputs and the corresponding IGRF coefficients will be extrapolated, whereas the Fortran and IDL versions do not extrapolate well if at all.
 
-2. The IGRF coefficients in the Python `geopack` are smooth functions of the time of milli-second cadance, whereas the coefficients are daily in the Fortran `geopack`.
+2. The IGRF coefficients in the Python `geopack` are time series at a milli-second cadance, whereas the coefficients are daily in the Fortran `geopack`.
 
 3. `igrf_gsm` is changed to a wrapper of `igrf_geo` plus the proper coordinate transforms. There are many places in the Fortran version where pages of codes are copy-pasted. Though not aesthetically pleasing, I let them live in the python version, because it requires tremendous efforts to fix them all. However, the igrf_geo is the one place that is obvious and easy to fix, so I did it.
 
@@ -14,7 +14,6 @@ Test results are attached in `./test_geopack1.md` to demonstrate that the Python
 
 5. A `gswgsm` is added to support the new GSW coordinate introduced in `geopack08`.
 
-    
 
 ## Installation
 The package requires Python pre-installed and depends on the `numpy` and `scipy` packages. I've only tested the Python `geopack` on Mac OS in Python 3.6. Performance on other platform and other versions of Python is unclear.
@@ -28,14 +27,15 @@ To install the **latest** version, manually install on a Mac (and hopefully Linu
 3. Install the package to Python by typing `python3 setup.py install` in the terminal
 
 
-
 ## Notes on `geopack08` and `T07d`
-The Python version is compatible with both Fortran `geopack05`  and `geopack08`. The major change of `geopack08` is a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable to study the tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support for T07d is under development.
+The Python version of `geopack` tries to be compatible with both Fortran `geopack05`  and `geopack08`. The major change of `geopack08` is a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable to study the tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support for T07d is under development.
+
 
 ## Notes on the G and W parameters
 There are two G parameters used as optional inputs to the T01 model. There definitions are in Tsyganenko (2001). Similarly, there are six W parameters used as optional inputs to the T04 model, defined in Tsyganenko (2005). The python version does not support the calculations of the G and W parameters. For users interested, here is the link for the Qin-Denton W and G parameters at https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/. Thanks for Dr Shawn Young for providing the references and relevant information.
 
 Back in my mind, there are some potential ways to implement the G and W parameter. But please do understand that the package does not have any funding support. I usually do major updates during summer or winter break, when it's easier to find spare time. For users that are familiar with the G and W parameters, let me know if you have any suggestions or ideas on solutions to implement them in the package!
+
 
 ## Example of getting the time tag
 The model needs to be updated for each new time step. Time used is the unix timestamp, which is the seconds from 1970-01-01/00:00. Here are some examples in Python to get the time from intuitive inputs.
