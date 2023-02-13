@@ -46,7 +46,7 @@ def init_igrf():
             i = 1
         n, m = np.int32(cols[1:3])
         mn = np.int32(n * (n + 1) * 0.5 + m)
-        igrf[mn, :, i] = [np.float(j) for j in cols[3:]]
+        igrf[mn, :, i] = [np.float32(j) for j in cols[3:]]
 
     # treat the last column
     years[-1] += 5
