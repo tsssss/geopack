@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url= 'https://github.com/tsssss/geopack',
-    requires= ['numpy','scipy'],
+    install_requires= ['numpy','scipy'],
     platforms= ['Mac OS'],
     license= 'MIT',
     keywords= ['geopack','space physics','Tsyganenko model'],
