@@ -1,14 +1,14 @@
 # The geopack and Tsyganenko models in Python
-**Author: Sheng Tian, Univ. of Minnesota, tianx138@umn.edu**
+**Author: Sheng Tian, UCLA, ts0110@atmos.ucla.edu**
 
 This python `geopack` has integrated two modules originally written in Fortran: the `geopack` and the Tsyganenko models (T89, T96, T01, and T04). The Fortran `geopack05` is available at https://ccmc.gsfc.nasa.gov/modelweb/magnetos/data-based/Geopack_2005.html and `geopack08` is available at http://geo.phys.spbu.ru/~tsyganenko/Geopack-2008.html. Their DLM in IDL is available at http://ampere.jhuapl.edu/code/idl_geopack.html. As a crucial complement to `geopack05` and `geopack08`, the Tsyganenko models are available in Fortran at https://ccmc.gsfc.nasa.gov/models/modelinfo.php?model=Tsyganenko%20Magnetic%20Field.
 
-Test results are attached in `./test_geopack1.md` to demonstrate that the Python `geopack` returns the same outputs as the Fortran and IDL counterparts. However, invisible at the user-level, several improvements have been internally implemented:
+Test results are attached in `./test_geopack1.md` to demonstrate that the Python `geopack` returns the same outputs as the Fortran and IDL counterparts. However, invisible at the user level, several improvements have been internally implemented:
 1. The latest IGRF coefficients are used, which cover the time range from 1900 to 2025. Years beyond this range are valid inputs and the corresponding IGRF coefficients will be extrapolated, whereas the Fortran and IDL versions do not extrapolate well if at all.
 
-2. The IGRF coefficients in the Python `geopack` are time series at a milli-second cadance, whereas the coefficients are daily in the Fortran `geopack`.
+2. The IGRF coefficients in the Python `geopack` are time series at a milli-second cadence, whereas the coefficients are daily in the Fortran `geopack`.
 
-3. `igrf_gsm` is changed to a wrapper of `igrf_geo` plus the proper coordinate transforms. There are many places in the Fortran version where pages of codes are copy-pasted. Though not aesthetically pleasing, I let them live in the python version, because it requires tremendous efforts to fix them all. However, the igrf_geo is the one place that is obvious and easy to fix, so I did it.
+3. `igrf_gsm` is changed to a wrapper of `igrf_geo` plus the proper coordinate transforms. There are many places in the Fortran version where pages of codes are copied and pasted. Though not aesthetically pleasing, I let them live in the Python version, because it requires tremendous effort to fix them all. However, the igrf_geo is the one place that is obvious and easy to fix, so I did it.
 
 4. All `goto` statements in the Fortran `geopack` and Tsyganenko models are eliminated.
 
@@ -20,7 +20,7 @@ The package requires Python pre-installed and depends on the `numpy` and `scipy`
 
 To install the Python `geopack` through `pip`, type `> pip3 install geopack` in the terminal.
 
-To install the **latest** version, manually install on a Mac (and hopefully Linux):
+To install the **latest** version, manually install it on a Mac (and hopefully Linux):
 
 1. Download the latest package at https://github.com/tsssss/geopack/. 
 2. Unzip it, open a terminal, and `cd` to the unzipped directory
@@ -28,17 +28,17 @@ To install the **latest** version, manually install on a Mac (and hopefully Linu
 
 
 ## Notes on `geopack08` and `T07d`
-The Python version of `geopack` tries to be compatible with both Fortran `geopack05`  and `geopack08`. The major change of `geopack08` is a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable to study the tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support for T07d is under development.
+The Python version of `geopack` tries to be compatible with both Fortran `geopack05`  and `geopack08`. The major change of `geopack08` is a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable for studying tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support for T07d is under development.
 
 
 ## Notes on the G and W parameters
-There are two G parameters used as optional inputs to the T01 model. There definitions are in Tsyganenko (2001). Similarly, there are six W parameters used as optional inputs to the T04 model, defined in Tsyganenko (2005). The python version does not support the calculations of the G and W parameters. For users interested, here is the link for the Qin-Denton W and G parameters at https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/. Thanks for Dr Shawn Young for providing the references and relevant information.
+There are two G parameters used as optional inputs to the T01 model. Their definitions are in Tsyganenko (2001). Similarly, there are six W parameters used as optional inputs to the T04 model, as defined in Tsyganenko (2005). The Python version does not support the calculations of the G and W parameters. For users interested, here is the link for the Qin-Denton W and G parameters at https://rbsp-ect.newmexicoconsortium.org/data_pub/QinDenton/. Thanks to Dr Shawn Young for providing the references and relevant information.
 
-Back in my mind, there are some potential ways to implement the G and W parameter. But please do understand that the package does not have any funding support. I usually do major updates during summer or winter break, when it's easier to find spare time. For users that are familiar with the G and W parameters, let me know if you have any suggestions or ideas on solutions to implement them in the package!
+Back in my mind, there are some potential ways to implement the G and W parameters. But please do understand that the package does not have any funding support. I usually do major updates during summer or winter break, when it's easier to find spare time. For users who are familiar with the G and W parameters, let me know if you have any suggestions or ideas on solutions to implement them in the package!
 
 
 ## Example of getting the time tag
-The model needs to be updated for each new time step. Time used is the unix timestamp, which is the seconds from 1970-01-01/00:00. Here are some examples in Python to get the time from intuitive inputs.
+The model needs to be updated for each new time step. The time used is the unix timestamp, which is the seconds from 1970-01-01/00:00. Here are some examples in Python to get the time from intuitive inputs.
 
 ```python
 # Test for 2001-01-02/03:04:05 UT
@@ -62,7 +62,7 @@ print(ut)
 
 ## Usage
 
-Here is a short example on how to import the package and call functions. A detailed explanation of all functions is listed in the next section.
+Here is a short example of importing the package and call functions. A detailed explanation of all functions is listed in the next section.
 
 ```python
 from geopack import geopack, t89
