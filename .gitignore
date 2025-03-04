@@ -108,3 +108,5 @@ venv.bak/
 *.swo
 types_pro.taghl
 tags
+.DS_Store
+geopack/igrf_coeffs/*
