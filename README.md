@@ -1,4 +1,4 @@
-# The geopack and Tsyganenko models in Python
+# The geopack and Tsyganenko models in Python [![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=HCSRWAXB53DZN&no_recurring=0&currency_code=USD)
 **Author: Sheng Tian, UCLA, ts0110@atmos.ucla.edu**
 
 This python `geopack` has integrated two modules originally written in Fortran: the `geopack` and the Tsyganenko models (T89, T96, T01, and T04). The Fortran `geopack05` is available at https://ccmc.gsfc.nasa.gov/modelweb/magnetos/data-based/Geopack_2005.html and `geopack08` is available at http://geo.phys.spbu.ru/~tsyganenko/Geopack-2008.html. Their DLM in IDL is available at http://ampere.jhuapl.edu/code/idl_geopack.html. As a crucial complement to `geopack05` and `geopack08`, the Tsyganenko models are available in Fortran at https://ccmc.gsfc.nasa.gov/models/modelinfo.php?model=Tsyganenko%20Magnetic%20Field.
@@ -28,8 +28,6 @@ To install the **latest** version, manually install it on a Mac (and hopefully L
 
 ## Donate via PayPal
 I've been working on this package in my spare time. If you find this project helpful, please consider supporting it by buying me a coffee.
-
-[![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=HCSRWAXB53DZN&no_recurring=0&currency_code=USD)
 
 
 ## Notes on `geopack08` and `T07d`
