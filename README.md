@@ -26,6 +26,11 @@ To install the **latest** version, manually install it on a Mac (and hopefully L
 2. Unzip it, open a terminal, and `cd` to the unzipped directory
 3. Install the package to Python by typing `python3 setup.py install` in the terminal
 
+## Donate via PayPal
+I've been working on this package in my spare time. If you find this project helpful, please consider supporting it by buying me a coffee.
+
+[![Donate with PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate/?business=HCSRWAXB53DZN&no_recurring=0&currency_code=USD)
+
 
 ## Notes on `geopack08` and `T07d`
 The Python version of `geopack` tries to be compatible with both Fortran `geopack05`  and `geopack08`. The major change of `geopack08` is a new coordinate called `GSW`, which is similar to the widely used `GSM` but more suitable for studying tail physics. To be backward compatible with `geopack05`, the Python version still uses `GSM` as the major coordinate for vectors. However, to keep updated with `geopack08`, the Python version provides a new coordinate transform function `GSWGSM`, so that users can easily switch to their favorite coordinate. A new Tsyganenko `T07d` model has been released with a new algorithm. Support for T07d is under development.
