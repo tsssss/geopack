@@ -1,0 +1,6 @@
+cff-version: 1.0.12
+message: "Cite this software using the DOI below."
+authors:
+  - name: Sheng Tian
+    affiliation: Department of Atmospheric and Oceanic Sciences, University of California, Los Angeles, California, United States
+doi: 10.5281/zenodo.15110786
