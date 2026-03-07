@@ -147,7 +147,7 @@ def extall(iopgen,iopt,iopb,iopr,a,ntot,pdyn,dst,byimf,bzimf,vbimf1,vbimf2,ps,x,
         theta = 0.
     else:
         theta=np.arctan2(byimf,bzimf)
-        if theta <= 0: theta = 2*np.pi
+        if theta <= 0: theta += 2*np.pi
 
     ct=np.cos(theta)
     st=np.sin(theta)
